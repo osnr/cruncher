@@ -32,9 +32,14 @@ $ ->
 
         evalLine cursor.line + 1        
 
-    lineFreeNumbers = []
-    
-    draggingState = null
+    lineFreeRanges = []
+
+    updateFreeRanges = (from, to) ->
+        unlockedRange = lineFreeRanges[from.line]
+        return unless unlockedRange and
+            unlockedRange.start <= from.ch < unlockedRange.end
+
+        console.log 'you edited an unlocked region'
     
     evalLine = (line) ->
         editor.off 'change', onChange
@@ -47,7 +52,16 @@ $ ->
             parsed = null
 
         if parsed?.constructor == Value
-            editor.setLine line, text + ' = ' + parsed.toString()
+            equationString = text + ' = '
+            
+            lineFreeRanges[line] = [
+                start: equationString.length
+                end: equationString.length + parsed.toString().length
+            ]
+            
+            equationString += parsed.toString()
+            
+            editor.setLine line, equationString
             
         else if parsed?.constructor == Equation
             textSides = text.split('=')
@@ -70,6 +84,8 @@ $ ->
     onChange = (instance, changeObj) ->
         return if not editor
 
+        updateFreeRanges changeObj.from, changeObj.to
+        
         line = changeObj.to.line
         evalLine line
     
@@ -87,40 +103,61 @@ $ ->
 
         return token
 
-    showNumberWidget = (token, pos) ->
-        $('.number-widget').remove()
-        
-        $numberWidget = $('<div class="number-widget"><a class="icon-link"></a><a class="icon-lock"></a></div>')
+    endHover = ->
+        ($ '.number-widget').fadeOut 200, ->
+            ($ '.hovering-number').removeClass('hovering-number')
+            ($ this).remove()
 
+    showNumberWidget = (token, pos) ->
+        ($ '.number-widget').remove()
+        
+        $numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link">@</i></a><a id="lock"><i class="icon-lock">L</i></a></div>'
+        
         editor.addWidget(
             line: pos.line
             ch: token.start,
             $numberWidget[0]
         )
 
-        $('.hovering-number').mouseleave ->
-            $('.number-widget').fadeOut 200, ->
-                $(this).remove()
+        ($ '.hovering-number').mouseleave endHover
 
-        $numberWidget #.width($(this).width())
+        $numberWidget #.width(($ this).width())
             .offset (index, coords) ->
                 top: coords.top + 12
                 left: coords.left
             .mouseenter ->
                 console.log 'enter'
-                $('.hovering-number').unbind 'mouseleave'
+                ($ '.hovering-number').unbind('mouseleave')
 
-                $('.number-widget')
+                ($ '.number-widget')
                     .stop(true)
                     .animate(opacity: 100)
-                    .mouseleave ->
-                        $('.number-widget').fadeOut 200, ->
-                            $(this).remove()
-        
-    $(document).on('mouseenter', '.cm-number', (enterEvent) ->
+                    .mouseleave endHover
+            
+            .on 'click', '#lock', ->
+                ($ this)
+                    .attr('id', 'unlock')
+                    .find('i')
+                        .removeClass('icon-lock')
+                        .addClass 'icon-unlock'
+
+                ($ '.hovering-number').addClass 'unlocked-number'
+                lineFreeRanges[pos.line]?.push(token) or
+                    lineFreeRanges[pos.line] = [token]
+                console.log lineFreeRanges
+                
+            .on 'click', '#unlock', ->
+                ($ this)
+                    .attr('id', 'lock')
+                    .find('i')
+                        .removeClass('icon-unlock')
+                        .addClass 'icon-lock'
+
+    draggingState = null
+
+    ($ document).on('mouseenter', '.cm-number', (enterEvent) ->
         if draggingState? then return
-        
-        $(this).addClass 'hovering-number'
+
         hoverPos = editor.coordsChar(
             left: enterEvent.pageX,
             top: enterEvent.pageY
@@ -138,14 +175,17 @@ $ ->
         console.log hoverToken
 
         if hoverToken?
+            ($ '.hovering-number').removeClass 'hovering-number'
+            
+            ($ '.number-widget').stop(true)
+
+            ($ this).addClass 'hovering-number'
+            
             showNumberWidget hoverToken, hoverPos
         
-    ).on('mouseleave', '.cm-number', ->
-        $(this).removeClass 'hovering-number'
-
     ).on 'mousedown', '.cm-number', (downEvent) ->
-        $(this).addClass 'dragging-number'
-        $('.number-widget').remove()
+        ($ this).addClass 'dragging-number'
+        ($ '.number-widget').remove()
 
         draggingState = dr = {}
         
@@ -159,7 +199,7 @@ $ ->
         dr.start = line: dr.origin.line, ch: token.start
         dr.end = line: dr.origin.line, ch: token.end
                 
-        $(document).mousemove((moveEvent) =>
+        ($ document).mousemove((moveEvent) =>
             editor.setCursor dr.start # disable selection
             
             xOffset = moveEvent.pageX - downEvent.pageX
@@ -170,9 +210,9 @@ $ ->
 
             dr.end.ch = dr.start.ch + valueString.length
         ).mouseup =>
-            $('.dragging-number').removeClass 'dragging-number'
+            ($ '.dragging-number').removeClass 'dragging-number'
 
-            $(document).unbind('mousemove')
+            ($ document).unbind('mousemove')
                 .unbind 'mouseup'
 
             draggingState = null

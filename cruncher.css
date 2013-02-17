@@ -17,6 +17,7 @@
 .CodeMirror-lines pre {
   color: gray;
 }
+
 .cm-number {
   color: #003056;
   cursor: col-resize;
@@ -27,22 +28,24 @@
 .dragging-number {
   color: #00A1D9;
 }
+.unlocked-number {
+  color: #630D0A;
+}
+
 .number-widget {
   position: absolute;
   color: #214D70;
   line-height: 1em;
   z-index: 7;
-  padding-top: 2px;
+  padding-top: 3px;
 }
-.number-widget .icon-link {
+.number-widget a {
   margin: 2px;
 }
-.number-widget .icon-link :hover {
-  color: green;
+.number-widget a :hover {
+  color: #00A1D9;
 }
-.number-widget .icon-lock {
-  margin: 2px;
-}
+
 .cm-op {
   color: #47D9BF;
 }
