@@ -1,10 +1,63 @@
 $ ->
-    window.editor = editor = null
-    window.editor = editor = CodeMirror.fromTextArea $('#code')[0],
-        lineNumbers: true
-        lineWrapping: true
+    window.Cruncher ||= {}
 
-    CodeMirror.keyMap.default['Enter'] = ->
+    $editor = $ '#editor'
+    
+    ($ '#editor').keypress (event) ->
+        console.log rangy.getSelection()
+        console.log String.fromCharCode(event.which)
+
+    highlightRange = (range) ->
+        range = range.cloneRange()
+        
+        tokens = Cruncher.tokenize $.trim range.toString()
+
+        range.deleteContents()
+
+        $line = $ '<p></p>'
+        
+        if tokens.length == 0
+            range.insertNode ($ '<br></br>')[0]
+
+        range.surroundContents $line[0]
+                
+        for token in tokens
+            ($ '<span></span>')
+                .text(token.text)
+                .addClass(token.id)
+                .appendTo $line
+
+        range
+    
+    evalEditor = ->
+        # assumes #editor contains all plain text
+        textNode = $editor.contents()[0]
+
+        range = rangy.createRange()
+        range.setStart textNode
+        loop
+            endIndex = textNode.data.indexOf('\n', 1)
+            if endIndex == -1
+                endIndex = textNode.data.length
+
+            range.setEnd textNode, endIndex
+
+            range = highlightRange range
+
+            console.log range.toHtml()
+            range.collapse false
+
+            textNode = $(range.startContainer).contents()[range.startOffset]
+
+            break if textNode.data.length <= 0
+            
+            range.setStart textNode
+
+    evalEditor()
+    
+    lineFreeRanges = []
+
+    onEnter = ->
         cursor = editor.getCursor()
         cursor.ch += 1
 
@@ -30,10 +83,8 @@ $ ->
         else
             editor.replaceRange '\n', cursor, cursor
 
-        evalLine cursor.line + 1        
-
-    lineFreeRanges = []
-
+        evalLine cursor.line + 1
+        
     updateFreeRanges = (from, to) ->
         unlockedRange = lineFreeRanges[from.line]
         return unless unlockedRange and
@@ -111,7 +162,7 @@ $ ->
     showNumberWidget = (token, pos) ->
         ($ '.number-widget').remove()
         
-        $numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link">@</i></a><a id="lock"><i class="icon-lock">L</i></a></div>'
+        $numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="lock"><i class="icon-lock"></i></a></div>'
         
         editor.addWidget(
             line: pos.line
@@ -155,7 +206,7 @@ $ ->
 
     draggingState = null
 
-    ($ document).on('mouseenter', '.cm-number', (enterEvent) ->
+    ($ document).on('mouseenter', '.number', (enterEvent) ->
         if draggingState? then return
 
         hoverPos = editor.coordsChar(
@@ -183,7 +234,7 @@ $ ->
             
             showNumberWidget hoverToken, hoverPos
         
-    ).on 'mousedown', '.cm-number', (downEvent) ->
+    ).on 'mousedown', '.number', (downEvent) ->
         ($ this).addClass 'dragging-number'
         ($ '.number-widget').remove()
 

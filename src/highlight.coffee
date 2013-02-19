@@ -1,32 +1,41 @@
-terminal2class =
-    error: 'error'
-    EOF: 'eof'
-    NUMBER: 'number'
-    UNIT: 'unit'
-    PLUS: 'op'
-    MINUS: 'op'
-    MUL: 'op'
-    DIV: 'op'
-    POW: 'op'
-    PCT_OFF: 'op'
-    PAREN_OPEN: 'paren'
-    PAREN_CLOSE: 'paren'
-    HEADING: 'heading'
-    EQUALS: 'equals'
+do ->
+    window.Cruncher ||= {}
 
-id2class = {}
-for terminal, id of parser.symbols_
-    id2class[id] = terminal2class[terminal]
+    terminal2class =
+        error: 'error'
+        EOF: 'eof'
+        NUMBER: 'number'
+        UNIT: 'unit'
+        PLUS: 'op'
+        MINUS: 'op'
+        MUL: 'op'
+        DIV: 'op'
+        POW: 'op'
+        PCT_OFF: 'op'
+        PAREN_OPEN: 'paren'
+        PAREN_CLOSE: 'paren'
+        HEADING: 'heading'
+        EQUALS: 'equals'
 
-CodeMirror.defineMode "soulver", ->
-    startState: ->
-        parser.lexer
+    window.id2class = {}
+    for terminal, id of parser.symbols_
+        id2class[id] = terminal2class[terminal]
 
-    token: (stream, lexer) ->
-        lexer.setInput stream.string[stream.pos ...]
-        id = lexer.next()
-        for i in [0 ... lexer.yytext.length]
-            stream.next()
+    Cruncher.tokenize = (text) ->
+        console.log text
+        tokens = []
+        # scan range
+        lexer = parser.lexer
 
-        return id2class[id]
+        i = 0
+        while i < text.length
+            lexer.setInput text[i ...]
+            id = lexer.next()
+            i += lexer.yytext.length
+
+            tokens.push
+                text: lexer.yytext
+                id: id2class[id]
+
+        tokens
 
