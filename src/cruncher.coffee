@@ -7,14 +7,15 @@ $ ->
         console.log rangy.getSelection()
         console.log String.fromCharCode(event.which)
 
-    highlightRange = (range) ->
+    highlightLine = (range) ->
         range = range.cloneRange()
+        text = range.toString().replace /\n/g, ''
         
-        tokens = Cruncher.tokenize $.trim range.toString()
+        tokens = Cruncher.tokenize text
 
         range.deleteContents()
 
-        $line = $ '<p></p>'
+        $line = $('<p></p>').data('text', text)
         
         if tokens.length == 0
             range.insertNode ($ '<br></br>')[0]
@@ -42,7 +43,7 @@ $ ->
 
             range.setEnd textNode, endIndex
 
-            range = highlightRange range
+            range = highlightLine range
 
             console.log range.toHtml()
             range.collapse false
@@ -92,11 +93,8 @@ $ ->
 
         console.log 'you edited an unlocked region'
     
-    evalLine = (line) ->
-        editor.off 'change', onChange
-        oldCursor = editor.getCursor()
-
-        text = editor.getLine(line)
+    evalLine = (node) ->
+        text = node.data
         try
             parsed = parser.parse(text)
         catch e
@@ -104,7 +102,7 @@ $ ->
 
         if parsed?.constructor == Value
             equationString = text + ' = '
-            
+
             lineFreeRanges[line] = [
                 start: equationString.length
                 end: equationString.length + parsed.toString().length
@@ -121,17 +119,6 @@ $ ->
             else
                 editor.setLine line, parsed.right.toString() + ' =' + textSides[1]
 
-                cursorOffset = -textSides[0].length + parsed.right.toString().length + 1
-                oldCursor.ch = oldCursor.ch + cursorOffset
-                
-                # TODO put this somewhere else so drag logic isn't mixed with eval logic
-                if draggingState?
-                    draggingState.start.ch += cursorOffset
-                    draggingState.end.ch += cursorOffset
-
-        editor.setCursor oldCursor
-        editor.on 'change', onChange
-
     onChange = (instance, changeObj) ->
         return if not editor
 
@@ -140,8 +127,6 @@ $ ->
         line = changeObj.to.line
         evalLine line
     
-    editor.on 'change', onChange
-
     nearestNumberToken = (pos) ->
         token = editor.getTokenAt pos
 
@@ -156,34 +141,25 @@ $ ->
 
     endHover = ->
         ($ '.number-widget').fadeOut 200, ->
-            ($ '.hovering-number').removeClass('hovering-number')
             ($ this).remove()
 
-    showNumberWidget = (token, pos) ->
+        ($ '.hovering-number').removeClass('hovering-number')
+
+    showNumberWidget = (node) ->
         ($ '.number-widget').remove()
         
-        $numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="lock"><i class="icon-lock"></i></a></div>'
-        
-        editor.addWidget(
-            line: pos.line
-            ch: token.start,
-            $numberWidget[0]
-        )
+        $numberWidget = $('<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="lock"><i class="icon-lock"></i></a></div>')
+            .appendTo node
 
         ($ '.hovering-number').mouseleave endHover
 
         $numberWidget #.width(($ this).width())
-            .offset (index, coords) ->
-                top: coords.top + 12
-                left: coords.left
+            .offset ->
+                pos = $(node).position()
+                top: pos.top + 15
+                left: pos.left
             .mouseenter ->
                 console.log 'enter'
-                ($ '.hovering-number').unbind('mouseleave')
-
-                ($ '.number-widget')
-                    .stop(true)
-                    .animate(opacity: 100)
-                    .mouseleave endHover
             
             .on 'click', '#lock', ->
                 ($ this)
@@ -209,57 +185,29 @@ $ ->
     ($ document).on('mouseenter', '.number', (enterEvent) ->
         if draggingState? then return
 
-        hoverPos = editor.coordsChar(
-            left: enterEvent.pageX,
-            top: enterEvent.pageY
-        )
-
-        hoverToken = nearestNumberToken hoverPos
-
-        if not hoverToken?
-            hoverPos = editor.coordsChar(
-                left: enterEvent.pageX,
-                top: enterEvent.pageY + 2 # ugly hack because coordsChar's hit box doesn't quite line up with the DOM hover hit box
-            )
-            hoverToken = nearestNumberToken hoverPos
-        
-        console.log hoverToken
-
-        if hoverToken?
-            ($ '.hovering-number').removeClass 'hovering-number'
+        ($ this).addClass 'hovering-number'
             
-            ($ '.number-widget').stop(true)
-
-            ($ this).addClass 'hovering-number'
-            
-            showNumberWidget hoverToken, hoverPos
+        showNumberWidget $(this)
         
     ).on 'mousedown', '.number', (downEvent) ->
         ($ this).addClass 'dragging-number'
         ($ '.number-widget').remove()
 
         draggingState = dr = {}
+        $editor.attr('contenteditable', 'false')
+            .attr('unselectable', 'on')
+            .css 'user-select', 'none'
         
-        dr.origin = editor.getCursor()
+        dr.value = Number $(this).text()
+        dr.fixedDigits = $(this).text().split('.')[1]?.length ? 0
         
-        token = nearestNumberToken dr.origin
-        
-        dr.value = Number(token.string)
-        dr.fixedDigits = token.string.split('.')[1]?.length ? 0
-        
-        dr.start = line: dr.origin.line, ch: token.start
-        dr.end = line: dr.origin.line, ch: token.end
-                
         ($ document).mousemove((moveEvent) =>
-            editor.setCursor dr.start # disable selection
-            
             xOffset = moveEvent.pageX - downEvent.pageX
-            dr.value += xOffset / 5
+            dr.value += xOffset / Math.abs(xOffset) #/ 5
 
             valueString = dr.value.toFixed dr.fixedDigits
-            editor.replaceRange valueString, dr.start, dr.end
-
-            dr.end.ch = dr.start.ch + valueString.length
+            console.log valueString
+            ($ this).text valueString
         ).mouseup =>
             ($ '.dragging-number').removeClass 'dragging-number'
 
@@ -267,10 +215,11 @@ $ ->
                 .unbind 'mouseup'
 
             draggingState = null
-            
-            editor.setCursor dr.origin
+            $editor.attr('contenteditable', 'true')
+                .attr('unselectable', '')
+                .css 'user-select', ''
 
-    editor.refresh()
+    # editor.refresh()
 
-    evalLine line for line in [0..editor.lineCount() - 1]
+    # evalLine line for line in [0..editor.lineCount() - 1]
 

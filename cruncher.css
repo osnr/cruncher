@@ -30,8 +30,8 @@
     position: absolute;
     color: #214D70;
     line-height: 1em;
-    z-index: 7;
-    padding-top: 3px;
+    z-index: 1;
+    border: 1px gray solid;
 }
 .number-widget a {
     margin: 2px;
