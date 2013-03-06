@@ -1,58 +1,67 @@
 .CodeMirror {
-  border: 1px solid #eee;
-  margin: 0 auto;
-  width: 600px;
-  font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
-  font-size: 14px;
-  line-height: 28px;
+    border: 1px solid #eee;
+    margin: 0 auto;
+    width: 600px;
+    font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
+    font-size: 14px;
+    line-height: 28px;
 }
 .CodeMirror-scroll {
-  height: auto;
-  overflow-y: hidden;
-  overflow-x: auto;
+    height: auto;
+    overflow-y: hidden;
+    overflow-x: auto;
 }
 .CodeMirror-cursor {
-  height: 18px;
+    height: 18px;
 }
 .CodeMirror-lines pre {
-  color: gray;
+    color: gray;
 }
 
 .cm-number {
-  color: #003056;
-  cursor: col-resize;
+    color: #003056;
+    cursor: col-resize;
 }
 .hovering-number {
-  color: #00A1D9;
+    color: #00A1D9;
 }
 .dragging-number {
-  color: #00A1D9;
+    color: #00A1D9;
 }
-.unlocked-number {
-  color: #630D0A;
+.free-number {
+    color: #630D0A;
+}
+.free-number.hovering-number {
+    color: #AF4A46;
 }
 
 .number-widget {
-  position: absolute;
-  color: #214D70;
-  line-height: 1em;
-  z-index: 7;
-  padding-top: 3px;
+    position: absolute;
+    color: #214D70;
+    line-height: 1em;
+    z-index: 7;
+    padding-top: 3px;
 }
 .number-widget a {
-  margin: 2px;
+    margin: 2px;
 }
 .number-widget a :hover {
-  color: #00A1D9;
+    color: #00A1D9;
+}
+.free-number-widget.number-widget {
+    color: #630D0A;
+}
+.free-number-widget.number-widget a :hover {
+    color: #AF4A46;
 }
 
 .cm-op {
-  color: #47D9BF;
+    color: #47D9BF;
 }
 .cm-unit {
-  color: #04518C;
+    color: #04518C;
 }
 .cm-heading {
-  color: black;
-  font-weight: bold;
+    color: black;
+    font-weight: bold;
 }

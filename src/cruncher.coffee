@@ -32,15 +32,20 @@ $ ->
 
         evalLine cursor.line + 1        
 
-    lineFreeRanges = []
+    updateMarksAfterEdit = (from, to) ->
+        freeMark = editor.findMarksAt(from)[0]
 
-    updateFreeRanges = (from, to) ->
-        unlockedRange = lineFreeRanges[from.line]
-        return unless unlockedRange and
-            unlockedRange.start <= from.ch < unlockedRange.end
+        return unless freeMark?
 
-        console.log 'you edited an unlocked region'
-    
+        token = editor.getTokenAt to
+        console.log freeMark.getOptions()
+        newMark = editor.markText { line: to.line, ch: token.start },
+            { line: to.line, ch: token.end },
+            freeMark.getOptions()
+        freeMark.clear()
+        
+        console.log 'you edited an unlocked region', freeMark, newMark
+
     evalLine = (line) ->
         editor.off 'change', onChange
         oldCursor = editor.getCursor()
@@ -51,32 +56,33 @@ $ ->
         catch e
             parsed = null
 
-        if parsed?.constructor == Value
+        if parsed?.constructor == Value # edited a line without another side (yet)
             equationString = text + ' = '
-            
-            lineFreeRanges[line] = [
-                start: equationString.length
-                end: equationString.length + parsed.toString().length
-            ]
-            
+
+            start = equationString.length
             equationString += parsed.toString()
+            end = equationString.length
             
             editor.setLine line, equationString
-            
-        else if parsed?.constructor == Equation
-            textSides = text.split('=')
-            if oldCursor.ch < text.indexOf('=')
-                editor.setLine line, textSides[0] + '= ' + parsed.left.toString()
-            else
-                editor.setLine line, parsed.right.toString() + ' =' + textSides[1]
 
-                cursorOffset = -textSides[0].length + parsed.right.toString().length + 1
-                oldCursor.ch = oldCursor.ch + cursorOffset
+            editor.markText { line: line, ch: start },
+                { line: line, ch: end },
+                { className: 'free-number' }
+            
+        # else if parsed?.constructor == Equation
+            # textSides = text.split('=')
+            # if oldCursor.ch < text.indexOf('=')
+            #     editor.setLine line, textSides[0] + '= ' + parsed.left.toString()
+            # else
+            #     editor.setLine line, parsed.right.toString() + ' =' + textSides[1]
+
+            #     cursorOffset = -textSides[0].length + parsed.right.toString().length + 1
+            #     oldCursor.ch = oldCursor.ch + cursorOffset
                 
-                # TODO put this somewhere else so drag logic isn't mixed with eval logic
-                if draggingState?
-                    draggingState.start.ch += cursorOffset
-                    draggingState.end.ch += cursorOffset
+            #     # TODO put this somewhere else so drag logic isn't mixed with eval logic
+            #     if draggingState?
+            #         draggingState.start.ch += cursorOffset
+            #         draggingState.end.ch += cursorOffset
 
         editor.setCursor oldCursor
         editor.on 'change', onChange
@@ -84,7 +90,7 @@ $ ->
     onChange = (instance, changeObj) ->
         return if not editor
 
-        updateFreeRanges changeObj.from, changeObj.to
+        updateMarksAfterEdit changeObj.from, changeObj.to
         
         line = changeObj.to.line
         evalLine line
@@ -111,7 +117,9 @@ $ ->
     showNumberWidget = (token, pos) ->
         ($ '.number-widget').remove()
         
-        $numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link">@</i></a><a id="lock"><i class="icon-lock">L</i></a></div>'
+        $numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="lock"><i class="icon-lock"></i></a></div>'
+
+        mark = editor.findMarksAt(pos)[0]
         
         editor.addWidget(
             line: pos.line
@@ -135,23 +143,31 @@ $ ->
                     .mouseleave endHover
             
             .on 'click', '#lock', ->
+                if not mark?
+                    mark = editor.markText { line: pos.line, ch: token.start },
+                        { line: pos.line, ch: token.end },
+                        { className: 'free-number' }
+                    
                 ($ this)
                     .attr('id', 'unlock')
                     .find('i')
                         .removeClass('icon-lock')
                         .addClass 'icon-unlock'
-
-                ($ '.hovering-number').addClass 'unlocked-number'
-                lineFreeRanges[pos.line]?.push(token) or
-                    lineFreeRanges[pos.line] = [token]
-                console.log lineFreeRanges
+                $numberWidget.addClass 'free-number-widget'
                 
             .on 'click', '#unlock', ->
+                if mark?
+                    mark.clear()
+                    mark = null
+                
                 ($ this)
                     .attr('id', 'lock')
                     .find('i')
                         .removeClass('icon-unlock')
                         .addClass 'icon-lock'
+                $numberWidget.removeClass 'free-number-widget'
+
+        ($ '#lock').click() if mark?
 
     draggingState = null
 
