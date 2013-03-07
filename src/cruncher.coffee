@@ -125,17 +125,21 @@ $ ->
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
                 window.leftF = leftF
                 window.rightF = rightF
-                solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
-                solutionText = solution.toFixed 2
-                console.log 'st', solutionText
 
-                editor.replaceRange solutionText,
-                    { line: line, ch: freeMarks[0].from },
-                    { line: line, ch: freeMarks[0].to }
-                
-                editor.markText { line: line, ch: markedPieces[0].length },
-                    { line: line, ch: markedPieces[0].length + solutionText.length },
-                    { className: 'free-number' }
+                try
+                    solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
+                    solutionText = solution.toFixed 2
+                    console.log 'st', solutionText
+
+                    editor.replaceRange solutionText,
+                        { line: line, ch: freeMarks[0].from },
+                        { line: line, ch: freeMarks[0].to }
+                    
+                    editor.markText { line: line, ch: markedPieces[0].length },
+                        { line: line, ch: markedPieces[0].length + solutionText.length },
+                        { className: 'free-number' }
+                catch e
+                    console.log 'The numeric solver was unable to solve this equation!'
 
             else
                 console.log 'This equation cannot be solved! Too much freedom', freeMarks
@@ -174,68 +178,6 @@ $ ->
 
         return token
 
-    endHover = ->
-        ($ '.number-widget').fadeOut 200, ->
-            ($ '.hovering-number').removeClass('hovering-number')
-            ($ this).remove()
-
-    showNumberWidget = (token, pos) ->
-        ($ '.number-widget').remove()
-        
-        $numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="lock"><i class="icon-lock"></i></a></div>'
-
-        mark = editor.findMarksAt(pos)[0]
-        
-        editor.addWidget(
-            line: pos.line
-            ch: token.start,
-            $numberWidget[0]
-        )
-
-        ($ '.hovering-number').mouseleave endHover
-
-        $numberWidget #.width(($ this).width())
-            .offset (index, coords) ->
-                top: coords.top
-                left: coords.left
-            .mouseenter ->
-                console.log 'enter'
-                ($ '.hovering-number').unbind('mouseleave')
-
-                ($ '.number-widget')
-                    .stop(true)
-                    .animate(opacity: 100)
-                    .mouseleave endHover
-            
-            .on 'click', '#lock', ->
-                console.log mark
-                if not mark?
-                    mark = editor.markText { line: pos.line, ch: token.start },
-                        { line: pos.line, ch: token.end },
-                        { className: 'free-number' }
-                    console.log mark
-                    
-                ($ this)
-                    .attr('id', 'unlock')
-                    .find('i')
-                        .removeClass('icon-lock')
-                        .addClass 'icon-unlock'
-                $numberWidget.addClass 'free-number-widget'
-                
-            .on 'click', '#unlock', ->
-                if mark?
-                    mark.clear()
-                    mark = null
-                
-                ($ this)
-                    .attr('id', 'lock')
-                    .find('i')
-                        .removeClass('icon-unlock')
-                        .addClass 'icon-lock'
-                $numberWidget.removeClass 'free-number-widget'
-
-        ($ '#lock').click() if mark?
-
     draggingState = null
 
     ($ document).on('mouseenter', '.cm-number', (enterEvent) ->
@@ -264,7 +206,7 @@ $ ->
 
             ($ this).addClass 'hovering-number'
             
-            showNumberWidget hoverToken, hoverPos
+            (new NumberWidget hoverToken, hoverPos, (line) -> evalLine line).show()
         
     ).on 'mousedown', '.cm-number', (downEvent) ->
         ($ this).addClass 'dragging-number'
@@ -290,13 +232,16 @@ $ ->
             xOffset = moveEvent.pageX - xCenter
             xCenter = moveEvent.pageX
             
-            dr.value += if xOffset >= 0 then 1 else if xOffset == 0 then 0 else -1
+            delta = if xOffset >= 2 then 1 else if xOffset <= -2 then -1 else 0
             console.log xOffset / (Math.abs xOffset)
 
-            valueString = dr.value.toFixed dr.fixedDigits
-            editor.replaceRange valueString, dr.start, dr.end
+            if delta != 0
+                dr.value += delta
+                
+                valueString = dr.value.toFixed dr.fixedDigits
+                editor.replaceRange valueString, dr.start, dr.end
 
-            dr.end.ch = dr.start.ch + valueString.length
+                dr.end.ch = dr.start.ch + valueString.length
         ).mouseup =>
             ($ '.dragging-number').removeClass 'dragging-number'
 
@@ -310,4 +255,3 @@ $ ->
     editor.refresh()
 
     evalLine line for line in [0..editor.lineCount() - 1]
-
