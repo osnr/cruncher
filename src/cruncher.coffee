@@ -51,13 +51,16 @@ $ ->
         # runs while evaluating and constraining a line
         # weakened version of change event that just makes sure
         # user's cursor stays in a sane position
-        return (instance, changeObj) ->
-            return unless oldCursor.line == changeObj.to.line and
-                oldCursor.ch >= changeObj.from.ch
 
-            editor.setCursor
-                line: oldCursor.line
-                ch: oldCursor.ch + changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
+        return (instance, changeObj) ->
+            return unless oldCursor.line == changeObj.to.line
+
+            if oldCursor.ch > changeObj.from.ch
+                editor.setCursor
+                    line: oldCursor.line
+                    ch: oldCursor.ch + changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
+            else
+                editor.setCursor oldCursor
             
             console.log 'editing', oldCursor, changeObj
 
@@ -92,17 +95,18 @@ $ ->
             parsed = null
 
         if parsed?.constructor == Value # edited a line without another side (yet)
-            equationString = text + ' = '
+            freeString = parsed.toString()
 
-            start = equationString.length
-            equationString += parsed.toString()
-            end = equationString.length
-            
-            editor.setLine line, equationString
+            from =
+                line: line
+                ch: text.length + ' = '.length
+            to =
+                line: line
+                ch: text.length + ' = '.length + freeString.length
 
-            editor.markText { line: line, ch: start },
-                { line: line, ch: end },
-                { className: 'free-number' }
+            editor.replaceRange ' = ' + freeString, from, from
+
+            editor.markText from, to, { className: 'free-number' }
             
         else if parsed?.constructor == Equation
             # search for free variables that we can change to keep the equality constraint
