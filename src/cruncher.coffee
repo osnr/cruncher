@@ -56,9 +56,15 @@ $ ->
             return unless oldCursor.line == changeObj.to.line
 
             if oldCursor.ch > changeObj.from.ch
+                cursorOffset = changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
                 editor.setCursor
                     line: oldCursor.line
-                    ch: oldCursor.ch + changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
+                    ch: oldCursor.ch + cursorOffset
+
+                # TODO put this somewhere else so drag logic isn't mixed with eval logic
+                if draggingState?
+                    draggingState.start.ch += cursorOffset
+                    draggingState.end.ch += cursorOffset
             else
                 editor.setCursor oldCursor
             
@@ -142,11 +148,6 @@ $ ->
 
             #     cursorOffset = -textSides[0].length + parsed.right.toString().length + 1
             #     oldCursor.ch = oldCursor.ch + cursorOffset
-                
-            #     # TODO put this somewhere else so drag logic isn't mixed with eval logic
-            #     if draggingState?
-            #         draggingState.start.ch += cursorOffset
-            #         draggingState.end.ch += cursorOffset
 
         editor.off 'change', fixOnChange
         editor.on 'change', onChange
@@ -285,7 +286,8 @@ $ ->
             editor.setCursor dr.start # disable selection
             
             xOffset = moveEvent.pageX - downEvent.pageX
-            dr.value += xOffset / (Math.abs xOffset) #/ 5
+            dr.value += if xOffset >= 0 then 1 else if xOffset == 0 then 0 else -1
+            console.log xOffset / (Math.abs xOffset)
 
             valueString = dr.value.toFixed dr.fixedDigits
             editor.replaceRange valueString, dr.start, dr.end
