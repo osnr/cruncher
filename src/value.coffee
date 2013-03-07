@@ -30,13 +30,13 @@ class window.Value
             if typeof right == 'number' # left and right both numbers
                 return doBaseOp op, left, right
             else if typeof right == 'function' # left number, right free
-                return (x) -> doOp op, left, right x
+                return (x) -> doOp op, left, (right x)
 
         else if typeof left == 'function'
             if typeof right == 'number' # left free, right number
-                return (x) -> doOp op, left x, right
+                return (x) -> doOp op, (left x), right
             else if typeof right == 'function' # left free, right free
-                return (x) -> (y) -> doOp op, left x, right y
+                return (x) -> (y) -> doOp op, (left x), (right y)
 
     op: (op, other) ->
         @num = doOp op, @num, other.num

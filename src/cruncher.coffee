@@ -47,16 +47,32 @@ $ ->
         
         console.log 'you edited an unlocked region', freeMark, newMark
 
+    fixCursor = (oldCursor) ->
+        # runs while evaluating and constraining a line
+        # weakened version of change event that just makes sure
+        # user's cursor stays in a sane position
+        return (instance, changeObj) ->
+            return unless oldCursor.line == changeObj.to.line and
+                oldCursor.ch >= changeObj.from.ch
+
+            editor.setCursor
+                line: oldCursor.line
+                ch: oldCursor.ch + changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
+            
+            console.log 'editing', oldCursor, changeObj
+
     evalLine = (line) ->
         editor.off 'change', onChange
-        oldCursor = editor.getCursor()
-
+        fixOnChange = fixCursor editor.getCursor()
+        editor.on 'change', fixOnChange
+        
         text = editor.getLine line
         handle = editor.getLineHandle line
 
         textToParse = text
-        if handle.markedSpans? and handle.markedSpans.length > 0
-            freeMarks = handle.markedSpans ? (span.marker for span in handle.markedSpans)
+        freeMarks = []
+        if handle?.markedSpans?
+            freeMarks = handle.markedSpans
             
             markedPieces = []
             start = 0
@@ -68,7 +84,8 @@ $ ->
 
             console.log markedPieces
             textToParse = markedPieces.join '&FREE&' # horrifying hack
-            
+
+        console.log textToParse            
         try
             parsed = parser.parse textToParse
         catch e
@@ -96,11 +113,16 @@ $ ->
                 console.log 'Solvable if you constrain', freeMarks
                 [leftF, rightF] = for val in [parsed.left, parsed.right]
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
-                
+                window.leftF = leftF
+                window.rightF = rightF
                 solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
                 solutionText = solution.toFixed 2
+                console.log 'st', solutionText
+
+                editor.replaceRange solutionText,
+                    { line: line, ch: freeMarks[0].from },
+                    { line: line, ch: freeMarks[0].to }
                 
-                editor.setLine line, markedPieces.join solutionText
                 editor.markText { line: line, ch: markedPieces[0].length },
                     { line: line, ch: markedPieces[0].length + solutionText.length },
                     { className: 'free-number' }
@@ -122,7 +144,7 @@ $ ->
             #         draggingState.start.ch += cursorOffset
             #         draggingState.end.ch += cursorOffset
 
-        editor.setCursor oldCursor
+        editor.off 'change', fixOnChange
         editor.on 'change', onChange
 
     onChange = (instance, changeObj) ->
