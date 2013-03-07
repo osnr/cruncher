@@ -2,7 +2,8 @@ $ ->
     window.editor = editor = null
     window.editor = editor = CodeMirror.fromTextArea $('#code')[0],
         lineNumbers: true
-        lineWrapping: true
+        lineWrapping: true,
+        theme: 'cruncher'
 
     CodeMirror.keyMap.default['Enter'] = ->
         cursor = editor.getCursor()
@@ -34,7 +35,7 @@ $ ->
 
     updateMarksAfterEdit = (from, to) ->
         freeMark = editor.findMarksAt(from)[0]
-
+        console.log editor.getAllMarks()
         return unless freeMark?
 
         token = editor.getTokenAt to
@@ -50,9 +51,26 @@ $ ->
         editor.off 'change', onChange
         oldCursor = editor.getCursor()
 
-        text = editor.getLine(line)
+        text = editor.getLine line
+        handle = editor.getLineHandle line
+
+        textToParse = text
+        if handle.markedSpans? and handle.markedSpans.length > 0
+            freeMarks = handle.markedSpans ? (span.marker for span in handle.markedSpans)
+            
+            markedPieces = []
+            start = 0
+            for freeMark in freeMarks
+                console.log freeMark
+                markedPieces.push (text.substring start, freeMark.from)
+                start = freeMark.to
+            markedPieces.push (text.substring start, text.length)
+
+            console.log markedPieces
+            textToParse = markedPieces.join '&FREE&' # horrifying hack
+            
         try
-            parsed = parser.parse(text)
+            parsed = parser.parse textToParse
         catch e
             parsed = null
 
@@ -69,7 +87,27 @@ $ ->
                 { line: line, ch: end },
                 { className: 'free-number' }
             
-        # else if parsed?.constructor == Equation
+        else if parsed?.constructor == Equation
+            # search for free variables that we can change to keep the equality constraint
+            if freeMarks.length < 1
+                console.log 'This equation cannot be solved! Not enough freedom'
+
+            else if freeMarks.length == 1
+                console.log 'Solvable if you constrain', freeMarks
+                [leftF, rightF] = for val in [parsed.left, parsed.right]
+                    do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
+                
+                solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
+                solutionText = solution.toFixed 2
+                
+                editor.setLine line, markedPieces.join solutionText
+                editor.markText { line: line, ch: markedPieces[0].length },
+                    { line: line, ch: markedPieces[0].length + solutionText.length },
+                    { className: 'free-number' }
+
+            else
+                console.log 'This equation cannot be solved! Too much freedom', freeMarks
+            
             # textSides = text.split('=')
             # if oldCursor.ch < text.indexOf('=')
             #     editor.setLine line, textSides[0] + '= ' + parsed.left.toString()
@@ -131,7 +169,7 @@ $ ->
 
         $numberWidget #.width(($ this).width())
             .offset (index, coords) ->
-                top: coords.top + 12
+                top: coords.top
                 left: coords.left
             .mouseenter ->
                 console.log 'enter'
@@ -143,10 +181,12 @@ $ ->
                     .mouseleave endHover
             
             .on 'click', '#lock', ->
+                console.log mark
                 if not mark?
                     mark = editor.markText { line: pos.line, ch: token.start },
                         { line: pos.line, ch: token.end },
                         { className: 'free-number' }
+                    console.log mark
                     
                 ($ this)
                     .attr('id', 'unlock')

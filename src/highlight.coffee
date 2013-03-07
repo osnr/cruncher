@@ -29,4 +29,3 @@ CodeMirror.defineMode "soulver", ->
             stream.next()
 
         return id2class[id]
-

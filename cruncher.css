@@ -1,4 +1,4 @@
-.CodeMirror {
+.cm-s-cruncher.CodeMirror {
     border: 1px solid #eee;
     margin: 0 auto;
     width: 600px;
@@ -6,32 +6,32 @@
     font-size: 14px;
     line-height: 28px;
 }
-.CodeMirror-scroll {
+.cm-s-cruncher .CodeMirror-scroll {
     height: auto;
     overflow-y: hidden;
     overflow-x: auto;
 }
-.CodeMirror-cursor {
+.cm-s-cruncher .CodeMirror-cursor {
     height: 18px;
 }
-.CodeMirror-lines pre {
+.cm-s-cruncher .CodeMirror-lines pre {
     color: gray;
 }
 
-.cm-number {
+.cm-s-cruncher .cm-number {
     color: #003056;
     cursor: col-resize;
 }
-.hovering-number {
+.cm-s-cruncher .hovering-number {
     color: #00A1D9;
 }
-.dragging-number {
+.cm-s-cruncher .dragging-number {
     color: #00A1D9;
 }
-.free-number {
+.cm-s-cruncher .free-number {
     color: #630D0A;
 }
-.free-number.hovering-number {
+.cm-s-cruncher .free-number.hovering-number {
     color: #AF4A46;
 }
 
@@ -40,7 +40,6 @@
     color: #214D70;
     line-height: 1em;
     z-index: 7;
-    padding-top: 3px;
 }
 .number-widget a {
     margin: 2px;
@@ -55,13 +54,13 @@
     color: #AF4A46;
 }
 
-.cm-op {
+.cm-s-cruncher .cm-op {
     color: #47D9BF;
 }
-.cm-unit {
+.cm-s-cruncher .cm-unit {
     color: #04518C;
 }
-.cm-heading {
+.cm-s-cruncher .cm-heading {
     color: black;
     font-weight: bold;
 }

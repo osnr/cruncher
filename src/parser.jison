@@ -6,6 +6,7 @@
 
 .+":"$                    return 'HEADING'
 \s+                      /* skip whitespace */
+"&FREE&"                 return 'FREE' /* horrible hack */
 [0-9\.]+                 return 'NUMBER'
 ("$"|"usd"|"dollar""s"?) return 'UNIT'
 "canadian dollar""s"?    return 'UNIT'
@@ -55,6 +56,8 @@ num
         {$$ = $num.setUnit($UNIT);}
     | NUMBER
         {$$ = new Value(Number($NUMBER));}
+    | FREE
+        {$$ = new Value(null);}
     ;
 
 e
