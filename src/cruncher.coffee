@@ -281,11 +281,15 @@ $ ->
         
         dr.start = line: dr.origin.line, ch: token.start
         dr.end = line: dr.origin.line, ch: token.end
-                
+
+        xCenter = downEvent.pageX
+        
         ($ document).mousemove((moveEvent) =>
             editor.setCursor dr.start # disable selection
+
+            xOffset = moveEvent.pageX - xCenter
+            xCenter = moveEvent.pageX
             
-            xOffset = moveEvent.pageX - downEvent.pageX
             dr.value += if xOffset >= 0 then 1 else if xOffset == 0 then 0 else -1
             console.log xOffset / (Math.abs xOffset)
 
