@@ -6,6 +6,14 @@ $ ->
         theme: 'cruncher'
 
     CodeMirror.keyMap.default['Enter'] = ->
+        # custom handling of Enter key so that if user does (cursor is |)
+        # 2 + 2| = 4
+        # 2 + 2\n = 4
+        # the 2 + 2 = 4 is preserved on the previous line,
+        # instead of breaking weirdly
+        # 2 + 2 = 4
+        # |
+        
         cursor = editor.getCursor()
         cursor.ch += 1
 
@@ -34,6 +42,9 @@ $ ->
         evalLine cursor.line + 1        
 
     updateMarksAfterEdit = (from, to) ->
+        # after doc is edited,
+        # relocate/rebuild markers for free variables
+        
         freeMark = editor.findMarksAt(from)[0]
         console.log editor.getAllMarks()
         return unless freeMark?
@@ -49,8 +60,8 @@ $ ->
 
     fixCursor = (oldCursor) ->
         # runs while evaluating and constraining a line
-        # weakened version of change event that just makes sure
-        # user's cursor stays in a sane position
+        # returns weakened version of onChange handler that just makes sure
+        # user's cursor stays in a sane position while we evalLine
 
         return (instance, changeObj) ->
             return unless oldCursor.line == changeObj.to.line
@@ -71,6 +82,13 @@ $ ->
             console.log 'editing', oldCursor, changeObj
 
     evalLine = (line) ->
+        # runs after a line changes and it's been re-marked with
+        # its current free variables
+        # (except, of course, when evalLine is the changer)
+        # reconstrain the free variable(s) [currently only 1 is supported]
+        # so that the equation is true,
+        # or make the line an equation
+        
         editor.off 'change', onChange
         fixOnChange = fixCursor editor.getCursor()
         editor.on 'change', fixOnChange
@@ -157,6 +175,9 @@ $ ->
         editor.on 'change', onChange
 
     onChange = (instance, changeObj) ->
+        # executes on user or cruncher change to text
+        # (except during evalLine)
+        
         return if not editor
 
         updateMarksAfterEdit changeObj.from, changeObj.to
@@ -167,6 +188,9 @@ $ ->
     editor.on 'change', onChange
 
     nearestNumberToken = (pos) ->
+        # find nearest number token to pos = { line, ch }
+        # used for identifying hover/drag target
+        
         token = editor.getTokenAt pos
 
         if token.type != 'number'
@@ -181,6 +205,9 @@ $ ->
     draggingState = null
 
     ($ document).on('mouseenter', '.cm-number', (enterEvent) ->
+        # add hover class, construct number widget
+        # when user hovers over a number
+        
         if draggingState? then return
 
         hoverPos = editor.coordsChar(
@@ -209,6 +236,8 @@ $ ->
             (new NumberWidget hoverToken, hoverPos, (line) -> evalLine line).show()
         
     ).on 'mousedown', '.cm-number', (downEvent) ->
+        # initiate and handle dragging/scrubbing behavior
+        
         ($ this).addClass 'dragging-number'
         ($ '.number-widget').remove()
 
