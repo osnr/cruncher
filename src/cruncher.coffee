@@ -281,7 +281,7 @@ $ ->
             editor.setCursor dr.start # disable selection
             
             xOffset = moveEvent.pageX - downEvent.pageX
-            dr.value += xOffset / 5
+            dr.value += xOffset / (Math.abs xOffset) #/ 5
 
             valueString = dr.value.toFixed dr.fixedDigits
             editor.replaceRange valueString, dr.start, dr.end
