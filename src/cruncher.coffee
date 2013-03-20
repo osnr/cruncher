@@ -141,8 +141,6 @@ $ ->
                 console.log 'Solvable if you constrain', freeMarks
                 [leftF, rightF] = for val in [parsed.left, parsed.right]
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
-                window.leftF = leftF
-                window.rightF = rightF
 
                 try
                     solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
@@ -177,7 +175,6 @@ $ ->
     onChange = (instance, changeObj) ->
         # executes on user or cruncher change to text
         # (except during evalLine)
-        
         return if not editor
 
         updateMarksAfterEdit changeObj.from, changeObj.to

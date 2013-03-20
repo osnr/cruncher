@@ -43,6 +43,7 @@
 }
 .number-widget a {
     margin: 2px;
+    cursor: pointer;
 }
 .number-widget a :hover {
     color: #00A1D9;
