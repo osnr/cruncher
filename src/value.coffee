@@ -1,12 +1,11 @@
 class window.Equation
     constructor: (@left, @right) ->
+        @values = @left.values.concat @right.values
 
-class window.Value
-    constructor: (@num) ->
-        @currency = null
-        @percentage = false
-        if not @num? # free variable
-            @num = (x) -> x
+class window.Expression
+    constructor: (value) ->
+        @values = [value]
+        @num = value.num
 
     doBaseOp = (op, left, right) ->
         switch op
@@ -22,8 +21,6 @@ class window.Value
                 return left * right
             when 'POW'
                 return Math.pow(left, right)
-            when 'PCT_OFF'
-                return (1 - left / 100) * right
 
     doOp = (op, left, right) ->
         if typeof left == 'number'
@@ -40,18 +37,30 @@ class window.Value
 
     op: (op, other) ->
         @num = doOp op, @num, other.num
+        @values = @values.concat other.values
 
-        @
-
-    setUnit: (unit) ->
-        if unit == '%'
-            @percentage = true
-        else
-            @currency = unit
         @
 
     toString: ->
-        str = ''
-        if @currency
-            str += @currency
-        str += @num.toFixed 2
+        @num.toFixed 2
+
+class window.Value
+    constructor: (@num) ->
+        if not @num? # free variable
+            @num = (x) -> x
+
+    append: (num) ->
+        @num = Number(@num + '' + num)
+        @
+
+    neg: ->
+        @num *= -1
+        @
+
+    setLocation: (start, end) ->
+        @start = start
+        @end = end
+        @
+
+    toString: ->
+        @num.toFixed 2

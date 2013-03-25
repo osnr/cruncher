@@ -5,14 +5,9 @@
 %%
 
 .+":"$                    return 'HEADING'
-\s+                      /* skip whitespace */
+[\s"$""%"]+                      /* skip whitespace, units */
 "&FREE&"                 return 'FREE' /* horrible hack */
 [0-9\.]+                 return 'NUMBER'
-("$"|"usd"|"dollar""s"?) return 'UNIT'
-"canadian dollar""s"?    return 'UNIT'
-("€"|"euro""s"?)         return 'UNIT'
-"%"\s+"off"              return 'PCT_OFF'
-"%"                      return 'UNIT'
 "="                      return 'EQUALS'
 "*"                      return 'MUL'
 "/"                      return 'DIV'
@@ -49,11 +44,11 @@ expressions
         {return null;}
     ;
 
-num
-    : num NUMBER
-        {$$ = $num.op('', new Value(Number($NUMBER)));}
-    | num UNIT
-        {$$ = $num.setUnit($UNIT);}
+value
+    : value NUMBER
+        {$$ = $value.append(Number($NUMBER));}
+    | MINUS value %prec UMINUS
+        {$$ = $value.neg();}
     | NUMBER
         {$$ = new Value(Number($NUMBER));}
     | FREE
@@ -71,16 +66,12 @@ e
         {$$ = $e1.op('DIV', $e2);}
     | e POW e
         {$$ = $e1.op('POW', $e2);}
-    | e PCT_OFF e
-        {$$ = $e1.op('PCT_OFF', $e2);}
     | MINUS e %prec UMINUS
-        {$$ = $e.op('MUL', new Value(-1));}
-    | UNIT e %prec UNIT
-        {$$ = $e.setUnit($UNIT);}
+        {$$ = $e.op('MUL', new Expression(new Value(-1)));}
     | PAREN_OPEN e PAREN_CLOSE
         {$$ = $e;}
-    | num
-        {$$ = $num;}
+    | value
+        {$$ = new Expression($value.setLocation(@value.first_column, @value.last_column));}
     | HEADING
         {$$ = null;}
     ;

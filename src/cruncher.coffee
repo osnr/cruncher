@@ -6,13 +6,15 @@ $ ->
         theme: 'cruncher'
 
     CodeMirror.keyMap.default['Enter'] = ->
-        # custom handling of Enter key so that if user does (cursor is |)
+        # custom handling of Enter key so that if user does: (cursor is |)
         # 2 + 2| = 4
-        # 2 + 2\n = 4
-        # the 2 + 2 = 4 is preserved on the previous line,
-        # instead of breaking weirdly
+        # 2 + 2[ENTER] = 4
+        # the 2 + 2 = 4 all stays on the previous line:
         # 2 + 2 = 4
         # |
+        # instead of breaking weirdly and regenerating line 1:
+        # 2 + 2 = 4
+        # | = 4
         
         cursor = editor.getCursor()
         cursor.ch += 1
@@ -41,22 +43,32 @@ $ ->
 
         evalLine cursor.line + 1        
 
-    updateMarksAfterEdit = (from, to) ->
-        # after doc is edited,
-        # relocate/rebuild markers for free variables
-        
-        freeMark = editor.findMarksAt(from)[0]
-        console.log editor.getAllMarks()
-        return unless freeMark?
+    getFreeMarks = (line) ->
+        (editor.getLineHandle line).markedSpans
+    
+    parsedLines = []
+    reparseLine = (line) ->
+        text = editor.getLine line
+       
+        textToParse = text
+        markedPieces = []
 
-        token = editor.getTokenAt to
-        console.log freeMark.getOptions()
-        newMark = editor.markText { line: to.line, ch: token.start },
-            { line: to.line, ch: token.end },
-            freeMark.getOptions()
-        freeMark.clear()
-        
-        console.log 'you edited an unlocked region', freeMark, newMark
+        freeMarks = getFreeMarks line
+        # FIXME work for > 1 mark
+        if freeMarks?[0]
+            freeMark = freeMarks[0]
+
+            markedPieces.push (text.substring 0, freeMark.from)
+            markedPieces.push (text.substring freeMark.to, text.length)
+
+            textToParse = markedPieces.join '&FREE&' # horrifying hack
+
+        console.log 'parsing', textToParse            
+        try
+            parsedLines[line] = parser.parse textToParse
+        catch e
+            console.log 'parse error', e
+            parsedLines[line] = null
 
     fixCursor = (oldCursor) ->
         # runs while evaluating and constraining a line
@@ -74,8 +86,8 @@ $ ->
 
                 # TODO put this somewhere else so drag logic isn't mixed with eval logic
                 if draggingState?
-                    draggingState.start.ch += cursorOffset
-                    draggingState.end.ch += cursorOffset
+                    draggingState.from.ch += cursorOffset
+                    draggingState.to.ch += cursorOffset
             else
                 editor.setCursor oldCursor
             
@@ -92,33 +104,10 @@ $ ->
         editor.off 'change', onChange
         fixOnChange = fixCursor editor.getCursor()
         editor.on 'change', fixOnChange
-        
+
         text = editor.getLine line
-        handle = editor.getLineHandle line
-
-        textToParse = text
-        freeMarks = []
-        if handle?.markedSpans?
-            freeMarks = handle.markedSpans
-            
-            markedPieces = []
-            start = 0
-            for freeMark in freeMarks
-                console.log freeMark
-                markedPieces.push (text.substring start, freeMark.from)
-                start = freeMark.to
-            markedPieces.push (text.substring start, text.length)
-
-            console.log markedPieces
-            textToParse = markedPieces.join '&FREE&' # horrifying hack
-
-        console.log textToParse            
-        try
-            parsed = parser.parse textToParse
-        catch e
-            parsed = null
-
-        if parsed?.constructor == Value # edited a line without another side (yet)
+        parsed = parsedLines[line]
+        if parsed?.constructor == Expression # edited a line without another side (yet)
             freeString = parsed.toString()
 
             from =
@@ -131,8 +120,14 @@ $ ->
             editor.replaceRange ' = ' + freeString, from, from
 
             editor.markText from, to, { className: 'free-number' }
+
+            reparseLine line
             
         else if parsed?.constructor == Equation
+            freeMarks = getFreeMarks line
+            console.log freeMarks
+            return unless freeMarks?
+            
             # search for free variables that we can change to keep the equality constraint
             if freeMarks.length < 1
                 console.log 'This equation cannot be solved! Not enough freedom'
@@ -143,6 +138,7 @@ $ ->
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
 
                 try
+                    window.leftF = leftF; window.rightF = rightF
                     solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
                     solutionText = solution.toFixed 2
                     console.log 'st', solutionText
@@ -151,23 +147,18 @@ $ ->
                         { line: line, ch: freeMarks[0].from },
                         { line: line, ch: freeMarks[0].to }
                     
-                    editor.markText { line: line, ch: markedPieces[0].length },
-                        { line: line, ch: markedPieces[0].length + solutionText.length },
+                    editor.markText { line: line, ch: freeMarks[0].from },
+                        { line: line, ch: freeMarks[0].from + solutionText.length },
                         { className: 'free-number' }
+
+                    reparseLine line
+                    
                 catch e
-                    console.log 'The numeric solver was unable to solve this equation!'
+                    debugger
+                    console.log 'The numeric solver was unable to solve this equation!', e
 
             else
                 console.log 'This equation cannot be solved! Too much freedom', freeMarks
-            
-            # textSides = text.split('=')
-            # if oldCursor.ch < text.indexOf('=')
-            #     editor.setLine line, textSides[0] + '= ' + parsed.left.toString()
-            # else
-            #     editor.setLine line, parsed.right.toString() + ' =' + textSides[1]
-
-            #     cursorOffset = -textSides[0].length + parsed.right.toString().length + 1
-            #     oldCursor.ch = oldCursor.ch + cursorOffset
 
         editor.off 'change', fixOnChange
         editor.on 'change', onChange
@@ -177,27 +168,27 @@ $ ->
         # (except during evalLine)
         return if not editor
 
-        updateMarksAfterEdit changeObj.from, changeObj.to
-        
         line = changeObj.to.line
+        reparseLine line
         evalLine line
     
     editor.on 'change', onChange
 
-    nearestNumberToken = (pos) ->
-        # find nearest number token to pos = { line, ch }
+    nearestValue = (pos) ->
+        # find nearest number (Value) to pos = { line, ch }
         # used for identifying hover/drag target
-        
-        token = editor.getTokenAt pos
 
-        if token.type != 'number'
-            pos.ch += 1
-            token = editor.getTokenAt pos
+        parsed = parsedLines[pos.line]
+        return unless parsed?
 
-        if token.type != 'number'
-            return null
+        nearest = null
+        for value in parsed.values
+            if value.start <= pos.ch <= value.end
+                nearest = value
+                console.log nearest
+                break
 
-        return token
+        return nearest
 
     draggingState = null
 
@@ -207,30 +198,29 @@ $ ->
         
         if draggingState? then return
 
-        hoverPos = editor.coordsChar(
-            left: enterEvent.pageX,
+        hoverPos = editor.coordsChar
+            left: enterEvent.pageX
             top: enterEvent.pageY
-        )
 
-        hoverToken = nearestNumberToken hoverPos
+        hoverValue = nearestValue hoverPos
 
-        if not hoverToken?
-            hoverPos = editor.coordsChar(
-                left: enterEvent.pageX,
+        if not hoverValue?
+            hoverPos = editor.coordsChar
+                left: enterEvent.pageX
                 top: enterEvent.pageY + 2 # ugly hack because coordsChar's hit box doesn't quite line up with the DOM hover hit box
-            )
-            hoverToken = nearestNumberToken hoverPos
-        
-        console.log hoverToken
 
-        if hoverToken?
+            hoverValue = nearestValue hoverPos
+        
+        console.log hoverValue
+
+        if hoverValue?
             ($ '.hovering-number').removeClass 'hovering-number'
             
             ($ '.number-widget').stop(true)
 
             ($ this).addClass 'hovering-number'
             
-            (new NumberWidget hoverToken, hoverPos, (line) -> evalLine line).show()
+            (new NumberWidget hoverValue, hoverPos, (line) -> evalLine line).show()
         
     ).on 'mousedown', '.cm-number:not(.free-number)', (downEvent) ->
         # initiate and handle dragging/scrubbing behavior
@@ -242,18 +232,18 @@ $ ->
         
         dr.origin = editor.getCursor()
         
-        token = nearestNumberToken dr.origin
+        value = nearestValue dr.origin
         
-        dr.value = Number(token.string)
-        dr.fixedDigits = token.string.split('.')[1]?.length ? 0
+        dr.num = value.num
+        dr.fixedDigits = value.toString().split('.')[1]?.length ? 0
         
-        dr.start = line: dr.origin.line, ch: token.start
-        dr.end = line: dr.origin.line, ch: token.end
+        dr.from = line: dr.origin.line, ch: value.start
+        dr.to = line: dr.origin.line, ch: value.end
 
         xCenter = downEvent.pageX
         
         ($ document).mousemove((moveEvent) =>
-            editor.setCursor dr.start # disable selection
+            editor.setCursor dr.from # disable selection
 
             xOffset = moveEvent.pageX - xCenter
             xCenter = moveEvent.pageX
@@ -262,22 +252,24 @@ $ ->
             console.log xOffset / (Math.abs xOffset)
 
             if delta != 0
-                dr.value += delta
+                dr.num += delta
                 
-                valueString = dr.value.toFixed dr.fixedDigits
-                editor.replaceRange valueString, dr.start, dr.end
+                numString = dr.num.toFixed dr.fixedDigits
+                editor.replaceRange numString, dr.from, dr.to
 
-                dr.end.ch = dr.start.ch + valueString.length
+                dr.to.ch = dr.from.ch + numString.length
         ).mouseup =>
             ($ '.dragging-number').removeClass 'dragging-number'
 
             ($ document).unbind('mousemove')
                 .unbind 'mouseup'
 
-            draggingState = null
-            
             editor.setCursor dr.origin
+
+            draggingState = dr = null
 
     editor.refresh()
 
-    evalLine line for line in [0..editor.lineCount() - 1]
+    for line in [0..editor.lineCount() - 1]
+        reparseLine line
+        evalLine line
