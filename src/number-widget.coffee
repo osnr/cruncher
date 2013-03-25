@@ -1,5 +1,5 @@
 class window.NumberWidget
-    constructor: (@token, @pos, @onUnlock) ->
+    constructor: (@token, @pos, @onLockChange) ->
         @$numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
 
         @mark = editor.findMarksAt(@pos)[0]
@@ -29,10 +29,12 @@ class window.NumberWidget
             .on 'click', '#unlock', =>
                 @setFreeNumber()
 
-                @onUnlock @pos.line
+                @onLockChange @pos.line
                 
             .on 'click', '#lock', =>
                 @unsetFreeNumber()
+
+                @onLockChange @pos.line
 
         @setFreeNumber ($ '#unlock') if @mark?
 

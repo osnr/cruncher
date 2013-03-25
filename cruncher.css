@@ -30,6 +30,7 @@
 }
 .cm-s-cruncher .free-number {
     color: #630D0A;
+    cursor: not-allowed;
 }
 .cm-s-cruncher .free-number.hovering-number {
     color: #AF4A46;
@@ -64,4 +65,9 @@
 .cm-s-cruncher .cm-heading {
     color: black;
     font-weight: bold;
+}
+
+/* temporary disable for demo */
+#link {
+    display: none;
 }

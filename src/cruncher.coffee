@@ -232,7 +232,7 @@ $ ->
             
             (new NumberWidget hoverToken, hoverPos, (line) -> evalLine line).show()
         
-    ).on 'mousedown', '.cm-number', (downEvent) ->
+    ).on 'mousedown', '.cm-number:not(.free-number)', (downEvent) ->
         # initiate and handle dragging/scrubbing behavior
         
         ($ this).addClass 'dragging-number'
