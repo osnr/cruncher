@@ -74,7 +74,7 @@ e
     | e PCT_OFF e
         {$$ = $e1.op('PCT_OFF', $e2);}
     | MINUS e %prec UMINUS
-        {$$ = $e.op('*', new Value(-1));}
+        {$$ = $e.op('MUL', new Value(-1));}
     | UNIT e %prec UNIT
         {$$ = $e.setUnit($UNIT);}
     | PAREN_OPEN e PAREN_CLOSE
