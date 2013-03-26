@@ -41,6 +41,7 @@ $ ->
         else
             editor.replaceRange '\n', cursor, cursor
 
+        reparseLine cursor.line + 1
         evalLine cursor.line + 1        
 
     getFreeMarks = (line) ->
@@ -61,7 +62,9 @@ $ ->
             markedPieces.push (text.substring 0, freeMark.from)
             markedPieces.push (text.substring freeMark.to, text.length)
 
-            textToParse = markedPieces.join '&FREE&' # horrifying hack
+            freePlaceholder = (Array freeMark.to - freeMark.from + 1).join ''
+
+            textToParse = markedPieces.join freePlaceholder # horrifying hack
 
         console.log 'parsing', textToParse            
         try
@@ -94,8 +97,7 @@ $ ->
             console.log 'editing', oldCursor, changeObj
 
     evalLine = (line) ->
-        # runs after a line changes and it's been re-marked with
-        # its current free variables
+        # runs after a line changes and it's been reparsed into parsedLines
         # (except, of course, when evalLine is the changer)
         # reconstrain the free variable(s) [currently only 1 is supported]
         # so that the equation is true,
@@ -125,14 +127,12 @@ $ ->
             
         else if parsed?.constructor == Equation
             freeMarks = getFreeMarks line
-            console.log freeMarks
-            return unless freeMarks?
             
             # search for free variables that we can change to keep the equality constraint
-            if freeMarks.length < 1
+            if freeMarks?.length < 1
                 console.log 'This equation cannot be solved! Not enough freedom'
 
-            else if freeMarks.length == 1
+            else if freeMarks?.length == 1
                 console.log 'Solvable if you constrain', freeMarks
                 [leftF, rightF] = for val in [parsed.left, parsed.right]
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
@@ -220,7 +220,11 @@ $ ->
 
             ($ this).addClass 'hovering-number'
             
-            (new NumberWidget hoverValue, hoverPos, (line) -> evalLine line).show()
+            (new NumberWidget hoverValue,
+                hoverPos,
+                (line) ->
+                    reparseLine line
+                    evalLine line).show()
         
     ).on 'mousedown', '.cm-number:not(.free-number)', (downEvent) ->
         # initiate and handle dragging/scrubbing behavior

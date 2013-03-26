@@ -6,7 +6,7 @@
 
 .+":"$                    return 'HEADING'
 [\s"$""%"]+                      /* skip whitespace, units */
-"&FREE&"                 return 'FREE' /* horrible hack */
+""+                    return 'FREE' /* horrible hack */
 [0-9\.]+                 return 'NUMBER'
 "="                      return 'EQUALS'
 "*"                      return 'MUL'
