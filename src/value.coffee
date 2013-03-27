@@ -1,8 +1,10 @@
-class window.Equation
+window.Cruncher = Cr = window.Cruncher || {}
+
+class Cr.Equation
     constructor: (@left, @right) ->
         @values = @left.values.concat @right.values
 
-class window.Expression
+class Cr.Expression
     constructor: (value) ->
         @values = [value]
         @num = value.num
@@ -44,7 +46,7 @@ class window.Expression
     toString: ->
         @num.toFixed 2
 
-class window.Value
+class Cr.Value
     constructor: (@num) ->
         if not @num? # free variable
             @num = (x) -> x

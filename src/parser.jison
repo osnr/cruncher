@@ -37,7 +37,7 @@
 
 expressions
     : e EQUALS e EOF
-        {return new Equation($e1, $e2);}
+        {return new Cruncher.Equation($e1, $e2);}
     | e EOF
         {return $1;}
     | EOF
@@ -50,9 +50,9 @@ value
     | MINUS value %prec UMINUS
         {$$ = $value.neg();}
     | NUMBER
-        {$$ = new Value(Number($NUMBER));}
+        {$$ = new Cruncher.Value(Number($NUMBER));}
     | FREE
-        {$$ = new Value(null);}
+        {$$ = new Cruncher.Value(null);}
     ;
 
 e
@@ -67,11 +67,11 @@ e
     | e POW e
         {$$ = $e1.op('POW', $e2);}
     | MINUS e %prec UMINUS
-        {$$ = $e.op('MUL', new Expression(new Value(-1)));}
+        {$$ = $e.op('MUL', new Cruncher.Expression(new Cruncher.Value(-1)));}
     | PAREN_OPEN e PAREN_CLOSE
         {$$ = $e;}
     | value
-        {$$ = new Expression($value.setLocation(@value.first_column, @value.last_column));}
+        {$$ = new Cruncher.Expression($value.setLocation(@value.first_column, @value.last_column));}
     | HEADING
         {$$ = null;}
     ;

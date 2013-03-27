@@ -1,13 +1,12 @@
 .cm-s-cruncher.CodeMirror {
-    border: 1px solid #eee;
     margin: 0 auto;
-    width: 600px;
+    height: 100%;
+    width: 100%;
     font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
     font-size: 14px;
     line-height: 28px;
 }
 .cm-s-cruncher .CodeMirror-scroll {
-    height: auto;
     overflow-y: hidden;
     overflow-x: auto;
 }
@@ -48,8 +47,9 @@
 }
 .number-widget a :hover {
     color: #00A1D9;
+    text-decoration: none;
 }
-.free-number-widget.number-widget {
+.free-number-widget.number-widget a {
     color: #630D0A;
 }
 .free-number-widget.number-widget a :hover {
@@ -65,6 +65,22 @@
 .cm-s-cruncher .cm-heading {
     color: black;
     font-weight: bold;
+}
+
+.parse-error-icon {
+    color: #C9534F;
+}
+.parse-error-line {
+    border-bottom: 1px dotted #C9534F;
+    width: auto;
+}
+
+.over-determined-icon {
+    color: #003056;
+}
+
+.under-determined-icon {
+    color: #630D0A;
 }
 
 /* temporary disable for demo */

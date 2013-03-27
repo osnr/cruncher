@@ -1,51 +1,20 @@
+window.Cruncher = Cr = window.Cruncher || {}
+
 $ ->
-    window.editor = editor = null
-    window.editor = editor = CodeMirror.fromTextArea $('#code')[0],
+    Cr.editor = editor = null
+    Cr.editor = editor = CodeMirror.fromTextArea $('#code')[0],
         lineNumbers: true
         lineWrapping: true,
+        gutters: ['lineState']
         theme: 'cruncher'
 
-    CodeMirror.keyMap.default['Enter'] = ->
-        # custom handling of Enter key so that if user does: (cursor is |)
-        # 2 + 2| = 4
-        # 2 + 2[ENTER] = 4
-        # the 2 + 2 = 4 all stays on the previous line:
-        # 2 + 2 = 4
-        # |
-        # instead of breaking weirdly and regenerating line 1:
-        # 2 + 2 = 4
-        # | = 4
-        
-        cursor = editor.getCursor()
-        cursor.ch += 1
-
-        token = editor.getTokenAt cursor
-        aroundEquals = token.type == 'equals'
-
-        while token.string != '' and not aroundEquals and token.type == null
-            token = editor.getTokenAt
-                line: cursor.line
-                ch: token.end + 1
-            aroundEquals = token.type == 'equals'
-
-        if aroundEquals
-            eol =
-                line: cursor.line
-                ch: editor.getLine(cursor.line).length
-            
-            editor.replaceRange '\n', eol, eol
-            editor.setCursor
-                line: cursor.line + 1
-                ch: 0
-            
+    getFreeMarkedSpans = (line) ->
+        handle = editor.getLineHandle line
+        if handle.markedSpans?
+            return (span for span in handle.markedSpans \
+                when span.marker.className == 'free-number')
         else
-            editor.replaceRange '\n', cursor, cursor
-
-        reparseLine cursor.line + 1
-        evalLine cursor.line + 1        
-
-    getFreeMarks = (line) ->
-        (editor.getLineHandle line).markedSpans
+            return []
     
     parsedLines = []
     reparseLine = (line) ->
@@ -54,10 +23,10 @@ $ ->
         textToParse = text
         markedPieces = []
 
-        freeMarks = getFreeMarks line
+        freeMarkedSpans = getFreeMarkedSpans line
         # FIXME work for > 1 mark
-        if freeMarks?[0]
-            freeMark = freeMarks[0]
+        if freeMarkedSpans?[0]
+            freeMark = freeMarkedSpans[0]
 
             markedPieces.push (text.substring 0, freeMark.from)
             markedPieces.push (text.substring freeMark.to, text.length)
@@ -69,9 +38,15 @@ $ ->
         console.log 'parsing', textToParse            
         try
             parsedLines[line] = parser.parse textToParse
+
+            Cr.unsetLineState line, 'parseError'
+            
         catch e
-            console.log 'parse error', e
+            console.log 'parse error on line', line
+            
             parsedLines[line] = null
+
+            Cr.setLineState line, 'parseError'
 
     fixCursor = (oldCursor) ->
         # runs while evaluating and constraining a line
@@ -97,11 +72,16 @@ $ ->
             console.log 'editing', oldCursor, changeObj
 
     evalLine = (line) ->
-        # runs after a line changes and it's been reparsed into parsedLines
+        # runs after a line changes
         # (except, of course, when evalLine is the changer)
         # reconstrain the free variable(s) [currently only 1 is supported]
         # so that the equation is true,
         # or make the line an equation
+
+        reparseLine line
+
+        Cr.unsetLineState line, stateName for stateName in \
+            ['overDetermined', 'underDetermined']
         
         editor.off 'change', onChange
         fixOnChange = fixCursor editor.getCursor()
@@ -109,7 +89,7 @@ $ ->
 
         text = editor.getLine line
         parsed = parsedLines[line]
-        if parsed?.constructor == Expression # edited a line without another side (yet)
+        if parsed?.constructor == Cr.Expression # edited a line without another side (yet)
             freeString = parsed.toString()
 
             from =
@@ -125,15 +105,16 @@ $ ->
 
             reparseLine line
             
-        else if parsed?.constructor == Equation
-            freeMarks = getFreeMarks line
+        else if parsed?.constructor == Cr.Equation
+            freeMarkedSpans = getFreeMarkedSpans line
             
             # search for free variables that we can change to keep the equality constraint
-            if freeMarks?.length < 1
+            if freeMarkedSpans?.length < 1
+                Cr.setLineState line, 'overDetermined'
                 console.log 'This equation cannot be solved! Not enough freedom'
 
-            else if freeMarks?.length == 1
-                console.log 'Solvable if you constrain', freeMarks
+            else if freeMarkedSpans?.length == 1
+                console.log 'Solvable if you constrain', freeMarkedSpans
                 [leftF, rightF] = for val in [parsed.left, parsed.right]
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
 
@@ -144,11 +125,11 @@ $ ->
                     console.log 'st', solutionText
 
                     editor.replaceRange solutionText,
-                        { line: line, ch: freeMarks[0].from },
-                        { line: line, ch: freeMarks[0].to }
+                        { line: line, ch: freeMarkedSpans[0].from },
+                        { line: line, ch: freeMarkedSpans[0].to }
                     
-                    editor.markText { line: line, ch: freeMarks[0].from },
-                        { line: line, ch: freeMarks[0].from + solutionText.length },
+                    editor.markText { line: line, ch: freeMarkedSpans[0].from },
+                        { line: line, ch: freeMarkedSpans[0].from + solutionText.length },
                         { className: 'free-number' }
 
                     reparseLine line
@@ -158,7 +139,8 @@ $ ->
                     console.log 'The numeric solver was unable to solve this equation!', e
 
             else
-                console.log 'This equation cannot be solved! Too much freedom', freeMarks
+                Cr.setLineState line, 'underDetermined'
+                console.log 'This equation cannot be solved! Too much freedom', freeMarkedSpans
 
         editor.off 'change', fixOnChange
         editor.on 'change', onChange
@@ -169,7 +151,6 @@ $ ->
         return if not editor
 
         line = changeObj.to.line
-        reparseLine line
         evalLine line
     
     editor.on 'change', onChange
@@ -220,11 +201,9 @@ $ ->
 
             ($ this).addClass 'hovering-number'
             
-            (new NumberWidget hoverValue,
+            (new Cr.NumberWidget hoverValue,
                 hoverPos,
-                (line) ->
-                    reparseLine line
-                    evalLine line).show()
+                (line) -> evalLine line).show()
         
     ).on 'mousedown', '.cm-number:not(.free-number)', (downEvent) ->
         # initiate and handle dragging/scrubbing behavior
@@ -275,5 +254,4 @@ $ ->
     editor.refresh()
 
     for line in [0..editor.lineCount() - 1]
-        reparseLine line
         evalLine line

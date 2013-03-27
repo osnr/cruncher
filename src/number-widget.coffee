@@ -1,13 +1,15 @@
-class window.NumberWidget
+window.Cruncher = Cr = window.Cruncher || {}
+
+class Cr.NumberWidget
     constructor: (@token, @pos, @onLockChange) ->
         @$numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
 
-        @mark = editor.findMarksAt(@pos)[0]
+        @mark = Cr.editor.findMarksAt(@pos)[0]
 
     show: ->
         ($ '.number-widget').remove()
         
-        editor.addWidget
+        Cr.editor.addWidget
             line: @pos.line
             ch: @token.start,
             @$numberWidget[0]
@@ -45,7 +47,7 @@ class window.NumberWidget
 
     setFreeNumber: ($target) =>
         if not @mark?
-            @mark = editor.markText { line: @pos.line, ch: @token.start },
+            @mark = Cr.editor.markText { line: @pos.line, ch: @token.start },
                 { line: @pos.line, ch: @token.end },
                 { className: 'free-number' }
 
