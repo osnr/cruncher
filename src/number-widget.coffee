@@ -51,8 +51,6 @@ class Cr.NumberWidget
                     line: @pos.line
                     ch: @value.end
 
-                console.log 'from', fromCoords, 'to', toCoords
-                
                 Cr.startConnect 0, @value,
                     (toCoords.left + fromCoords.left) / 2,
                     (fromCoords.bottom + fromCoords.top) / 2
@@ -62,7 +60,6 @@ class Cr.NumberWidget
         @setFreeNumber ($ '#unlock') if @mark?
 
     endHover: =>
-        console.log 'this', this
         @$numberWidget.fadeOut 200, =>
             @$number.removeClass 'hovering-number'
             @$numberWidget.remove()

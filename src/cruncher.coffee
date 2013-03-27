@@ -35,7 +35,6 @@ $ ->
 
             textToParse = markedPieces.join freePlaceholder # horrifying hack
 
-        console.log 'parsing', textToParse            
         try
             parsed = parser.parse textToParse
             if parsed?.values?
@@ -45,8 +44,6 @@ $ ->
             Cr.unsetLineState line, 'parseError'
             
         catch e
-            console.log 'parse error on line', line
-            
             parsedLines[line] = null
 
             Cr.setLineState line, 'parseError'
@@ -72,8 +69,6 @@ $ ->
             else
                 editor.setCursor oldCursor
             
-            console.log 'editing', oldCursor, changeObj
-
     markAsFree = (from, to) ->
         editor.markText from, to,
             className: 'free-number'
@@ -121,18 +116,14 @@ $ ->
             # search for free variables that we can change to keep the equality constraint
             if freeMarkedSpans?.length < 1
                 Cr.setLineState line, 'overDetermined'
-                console.log 'This equation cannot be solved! Not enough freedom'
 
             else if freeMarkedSpans?.length == 1
-                console.log 'Solvable if you constrain', freeMarkedSpans
                 [leftF, rightF] = for val in [parsed.left, parsed.right]
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
 
                 try
-                    window.leftF = leftF; window.rightF = rightF
                     solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
                     solutionText = solution.toFixed 2
-                    console.log 'st', solutionText
 
                     editor.replaceRange solutionText,
                         { line: line, ch: freeMarkedSpans[0].from },
@@ -144,12 +135,10 @@ $ ->
                     reparseLine line
                     
                 catch e
-                    debugger
                     console.log 'The numeric solver was unable to solve this equation!', e
 
             else
                 Cr.setLineState line, 'underDetermined'
-                console.log 'This equation cannot be solved! Too much freedom', freeMarkedSpans
 
         editor.off 'change', fixOnChange
         editor.on 'change', onChange
@@ -175,7 +164,6 @@ $ ->
         nearest = null
         for value in parsed.values
             if value.start <= pos.ch <= value.end
-                console.log 'match', pos, value
                 nearest = value
                 break
 

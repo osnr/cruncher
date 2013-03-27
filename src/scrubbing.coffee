@@ -20,8 +20,6 @@ Cr.startHover = (enterEvent) ->
 
         hoverValue = Cr.nearestValue hoverPos
 
-    console.log hoverValue
-
     if hoverValue?
         ($ '.hovering-number').removeClass 'hovering-number'
 
@@ -64,7 +62,6 @@ startDrag = (origin, value) -> onDragDown = (downEvent) ->
         xCenter = moveEvent.pageX
 
         delta = if xOffset >= 2 then 1 else if xOffset <= -2 then -1 else 0
-        console.log xOffset / (Math.abs xOffset)
 
         if delta != 0
             dr.num += delta

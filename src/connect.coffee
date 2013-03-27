@@ -36,7 +36,6 @@ moveConnect = (cid, originPath, originCursor, path) ->
             top: event.pageY + 2
 
         if targetValue != prevTargetValue
-            console.log 'CLEAR!'
             prevTargetMark?.clear()
             prevTargetMark = null
             prevTargetValue = null
