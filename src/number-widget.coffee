@@ -1,17 +1,21 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
 class Cr.NumberWidget
-    constructor: (@token, @pos, @onLockChange) ->
+    constructor: (@value, @pos, @onLockChange) ->
         @$numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
 
-        @mark = Cr.editor.findMarksAt(@pos)[0]
+        for span in Cr.getFreeMarkedSpans @pos.line
+            if span.from == @value.start and span.to == @value.end and
+            span.marker.className == 'free-number'
+                @mark = span.marker
+                break
 
     show: ->
         ($ '.number-widget').remove()
         
         Cr.editor.addWidget
             line: @pos.line
-            ch: @token.start,
+            ch: @value.start,
             @$numberWidget[0]
 
         ($ '.hovering-number').mouseleave endHover
@@ -47,8 +51,8 @@ class Cr.NumberWidget
 
     setFreeNumber: ($target) =>
         if not @mark?
-            @mark = Cr.editor.markText { line: @pos.line, ch: @token.start },
-                { line: @pos.line, ch: @token.end },
+            @mark = Cr.editor.markText { line: @pos.line, ch: @value.start },
+                { line: @pos.line, ch: @value.end },
                 { className: 'free-number' }
 
         ($ '#unlock')

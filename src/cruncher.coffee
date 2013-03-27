@@ -8,7 +8,7 @@ $ ->
         gutters: ['lineState']
         theme: 'cruncher'
 
-    getFreeMarkedSpans = (line) ->
+    Cr.getFreeMarkedSpans = (line) ->
         handle = editor.getLineHandle line
         if handle.markedSpans?
             return (span for span in handle.markedSpans \
@@ -23,7 +23,7 @@ $ ->
         textToParse = text
         markedPieces = []
 
-        freeMarkedSpans = getFreeMarkedSpans line
+        freeMarkedSpans = Cr.getFreeMarkedSpans line
         # FIXME work for > 1 mark
         if freeMarkedSpans?[0]
             freeMark = freeMarkedSpans[0]
@@ -106,7 +106,7 @@ $ ->
             reparseLine line
             
         else if parsed?.constructor == Cr.Equation
-            freeMarkedSpans = getFreeMarkedSpans line
+            freeMarkedSpans = Cr.getFreeMarkedSpans line
             
             # search for free variables that we can change to keep the equality constraint
             if freeMarkedSpans?.length < 1
