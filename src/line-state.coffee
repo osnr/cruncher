@@ -1,7 +1,7 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
 makeGutterMarker = (stateClass, iconClass, tooltip) ->
-    ($ '<i></i>')
+    -> ($ '<i></i>')
         .addClass(stateClass)
         .addClass(iconClass)
         .attr('title', tooltip)
@@ -41,7 +41,7 @@ Cr.setLineState = (line, stateName) ->
     state = lineStates[stateName]
 
     Cr.editor.setGutterMarker line, 'lineState',
-        state.gutterMarker
+        state.gutterMarker()
     Cr.editor.markText { line: line, ch: 0 },
         { line: line, ch: (Cr.editor.getLine line).length },
         { className: state.lineClass }
