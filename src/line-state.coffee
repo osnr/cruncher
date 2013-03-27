@@ -7,6 +7,7 @@ makeGutterMarker = (stateClass, iconClass, tooltip) ->
         .attr('title', tooltip)
         .tooltip(
             html: true
+            placement: 'bottom'
             container: 'body'
         )
         .get 0
@@ -23,14 +24,14 @@ lineStates =
         gutterMarker:
             makeGutterMarker 'over-determined-icon',
                 'icon-lock',
-                'This line doesn\'t have any free variables for me to change.'
+                'This line doesn\'t have enough <span class="over-determined-free">free numbers</span> for me to change.'
         lineClass: 'over-determined-line'
 
     underDetermined:
         gutterMarker:
             makeGutterMarker 'under-determined-icon',
                 'icon-unlock',
-                'This line has too many free variables!'
+                'This line has too many <span class="over-determined-free">free numbers</span>!'
         lineClass: 'under-determined-line'
 
 stateNameLines = []
