@@ -8,7 +8,7 @@ $ ->
         gutters: ['lineState']
         theme: 'cruncher'
 
-    Cr.getFreeMarkedSpans = (line) ->
+    Cr.getFreeMarkedSpans = getFreeMarkedSpans = (line) ->
         handle = editor.getLineHandle line
         if handle.markedSpans?
             return (span for span in handle.markedSpans \
@@ -23,7 +23,7 @@ $ ->
         textToParse = text
         markedPieces = []
 
-        freeMarkedSpans = Cr.getFreeMarkedSpans line
+        freeMarkedSpans = getFreeMarkedSpans line
         # FIXME work for > 1 mark
         if freeMarkedSpans?[0]
             freeMark = freeMarkedSpans[0]
@@ -37,7 +37,10 @@ $ ->
 
         console.log 'parsing', textToParse            
         try
-            parsedLines[line] = parser.parse textToParse
+            parsed = parser.parse textToParse
+            if parsed?.values?
+                value.line = line for value in parsed.values
+                parsedLines[line] = parsed
 
             Cr.unsetLineState line, 'parseError'
             
@@ -63,15 +66,22 @@ $ ->
                     ch: oldCursor.ch + cursorOffset
 
                 # TODO put this somewhere else so drag logic isn't mixed with eval logic
-                if draggingState?
-                    draggingState.from.ch += cursorOffset
-                    draggingState.to.ch += cursorOffset
+                if Cr.draggingState?
+                    Cr.draggingState.from.ch += cursorOffset
+                    Cr.draggingState.to.ch += cursorOffset
             else
                 editor.setCursor oldCursor
             
             console.log 'editing', oldCursor, changeObj
 
-    evalLine = (line) ->
+    markAsFree = (from, to) ->
+        editor.markText from, to,
+            className: 'free-number'
+            inclusiveLeft: false
+            inclusiveRight: false
+            atomic: true
+
+    Cr.evalLine = evalLine = (line) ->
         # runs after a line changes
         # (except, of course, when evalLine is the changer)
         # reconstrain the free variable(s) [currently only 1 is supported]
@@ -101,12 +111,12 @@ $ ->
 
             editor.replaceRange ' = ' + freeString, from, from
 
-            editor.markText from, to, { className: 'free-number' }
+            markAsFree from, to
 
             reparseLine line
             
         else if parsed?.constructor == Cr.Equation
-            freeMarkedSpans = Cr.getFreeMarkedSpans line
+            freeMarkedSpans = getFreeMarkedSpans line
             
             # search for free variables that we can change to keep the equality constraint
             if freeMarkedSpans?.length < 1
@@ -128,9 +138,8 @@ $ ->
                         { line: line, ch: freeMarkedSpans[0].from },
                         { line: line, ch: freeMarkedSpans[0].to }
                     
-                    editor.markText { line: line, ch: freeMarkedSpans[0].from },
-                        { line: line, ch: freeMarkedSpans[0].from + solutionText.length },
-                        { className: 'free-number' }
+                    markAsFree { line: line, ch: freeMarkedSpans[0].from },
+                        { line: line, ch: freeMarkedSpans[0].from + solutionText.length }
 
                     reparseLine line
                     
@@ -155,101 +164,24 @@ $ ->
     
     editor.on 'change', onChange
 
-    nearestValue = (pos) ->
+    Cr.nearestValue = nearestValue = (pos) ->
         # find nearest number (Value) to pos = { line, ch }
         # used for identifying hover/drag target
 
         parsed = parsedLines[pos.line]
-        return unless parsed?
+        return unless parsed? and
+            pos.ch < (editor.getLine pos.line).length
 
         nearest = null
         for value in parsed.values
             if value.start <= pos.ch <= value.end
+                console.log 'match', pos, value
                 nearest = value
-                console.log nearest
                 break
 
         return nearest
 
-    draggingState = null
-
-    ($ document).on('mouseenter', '.cm-number', (enterEvent) ->
-        # add hover class, construct number widget
-        # when user hovers over a number
-        
-        if draggingState? then return
-
-        hoverPos = editor.coordsChar
-            left: enterEvent.pageX
-            top: enterEvent.pageY
-
-        hoverValue = nearestValue hoverPos
-
-        if not hoverValue?
-            hoverPos = editor.coordsChar
-                left: enterEvent.pageX
-                top: enterEvent.pageY + 2 # ugly hack because coordsChar's hit box doesn't quite line up with the DOM hover hit box
-
-            hoverValue = nearestValue hoverPos
-        
-        console.log hoverValue
-
-        if hoverValue?
-            ($ '.hovering-number').removeClass 'hovering-number'
-            
-            ($ '.number-widget').stop(true)
-
-            ($ this).addClass 'hovering-number'
-            
-            (new Cr.NumberWidget hoverValue,
-                hoverPos,
-                (line) -> evalLine line).show()
-        
-    ).on 'mousedown', '.cm-number:not(.free-number)', (downEvent) ->
-        # initiate and handle dragging/scrubbing behavior
-        
-        ($ this).addClass 'dragging-number'
-        ($ '.number-widget').remove()
-
-        draggingState = dr = {}
-        
-        dr.origin = editor.getCursor()
-        
-        value = nearestValue dr.origin
-        
-        dr.num = value.num
-        dr.fixedDigits = value.toString().split('.')[1]?.length ? 0
-        
-        dr.from = line: dr.origin.line, ch: value.start
-        dr.to = line: dr.origin.line, ch: value.end
-
-        xCenter = downEvent.pageX
-        
-        ($ document).mousemove((moveEvent) =>
-            editor.setCursor dr.from # disable selection
-
-            xOffset = moveEvent.pageX - xCenter
-            xCenter = moveEvent.pageX
-            
-            delta = if xOffset >= 2 then 1 else if xOffset <= -2 then -1 else 0
-            console.log xOffset / (Math.abs xOffset)
-
-            if delta != 0
-                dr.num += delta
-                
-                numString = dr.num.toFixed dr.fixedDigits
-                editor.replaceRange numString, dr.from, dr.to
-
-                dr.to.ch = dr.from.ch + numString.length
-        ).mouseup =>
-            ($ '.dragging-number').removeClass 'dragging-number'
-
-            ($ document).unbind('mousemove')
-                .unbind 'mouseup'
-
-            editor.setCursor dr.origin
-
-            draggingState = dr = null
+    ($ document).on 'mouseenter', '.cm-number', Cr.startHover
 
     editor.refresh()
 

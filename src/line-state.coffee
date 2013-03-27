@@ -62,3 +62,6 @@ Cr.unsetLineState = (line, stateName) ->
                 span.marker.clear()
 
     stateNameLines[line] = null
+
+Cr.getLineState = (line) ->
+    stateNameLines[line]

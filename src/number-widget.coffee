@@ -2,7 +2,7 @@ window.Cruncher = Cr = window.Cruncher || {}
 
 class Cr.NumberWidget
     constructor: (@value, @pos, @onLockChange) ->
-        @$numberWidget = $ '<div class="number-widget"><a id="link"><i class="icon-link"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
+        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-link"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
 
         for span in Cr.getFreeMarkedSpans @pos.line
             if span.from == @value.start and span.to == @value.end and
@@ -18,19 +18,20 @@ class Cr.NumberWidget
             ch: @value.start,
             @$numberWidget[0]
 
-        ($ '.hovering-number').mouseleave endHover
+        @$number = $ '.hovering-number'
+        @$number.mouseleave @endHover
 
         @$numberWidget #.width(($ this).width())
             .offset (index, coords) ->
                 top: coords.top
                 left: coords.left
-            .mouseenter ->
-                ($ '.hovering-number').unbind('mouseleave')
+            .mouseenter =>
+                @$number.unbind 'mouseleave'
 
-                ($ '.number-widget')
+                @$numberWidget
                     .stop(true)
                     .animate(opacity: 100)
-                    .mouseleave endHover
+                    .mouseleave @endHover
             
             .on 'click', '#unlock', =>
                 @setFreeNumber()
@@ -42,12 +43,29 @@ class Cr.NumberWidget
 
                 @onLockChange @pos.line
 
+            .on 'mousedown', '#connect', (event) =>
+                fromCoords = Cr.editor.charCoords
+                    line: @pos.line
+                    ch: @value.start
+                toCoords = Cr.editor.charCoords
+                    line: @pos.line
+                    ch: @value.end
+
+                console.log 'from', fromCoords, 'to', toCoords
+                
+                Cr.startConnect 0, @value,
+                    (toCoords.left + fromCoords.left) / 2,
+                    (fromCoords.bottom + fromCoords.top) / 2
+
+                @endHover()
+
         @setFreeNumber ($ '#unlock') if @mark?
 
-    endHover = ->
-        ($ '.number-widget').fadeOut 200, ->
-            ($ '.hovering-number').removeClass('hovering-number')
-            ($ this).remove()
+    endHover: =>
+        console.log 'this', this
+        @$numberWidget.fadeOut 200, =>
+            @$number.removeClass 'hovering-number'
+            @$numberWidget.remove()
 
     setFreeNumber: ($target) =>
         if not @mark?

@@ -1,10 +1,11 @@
 .cm-s-cruncher.CodeMirror {
-    margin: 0 auto;
     height: 100%;
     width: 100%;
     font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
     font-size: 14px;
     line-height: 28px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
 }
 .cm-s-cruncher .CodeMirror-scroll {
     overflow-y: hidden;
@@ -20,6 +21,7 @@
 .cm-s-cruncher .cm-number {
     color: #003056;
     cursor: col-resize;
+    z-index: 6;
 }
 .cm-s-cruncher .hovering-number {
     color: #00A1D9;
@@ -35,19 +37,23 @@
     color: #630D0A;
 }
 
+.connected-number-cid-0 {
+    background-color: #ccc;
+}
+
 .number-widget {
     position: absolute;
     color: #214D70;
     line-height: 1em;
-    z-index: 7;
+    z-index: 6;
 }
 .number-widget a {
     margin: 2px;
     cursor: pointer;
+    text-decoration: none;
 }
 .number-widget a :hover {
     color: #00A1D9;
-    text-decoration: none;
 }
 .free-number-widget.number-widget a {
     color: #630D0A;
@@ -86,7 +92,12 @@
     color: #630D0A;
 }
 
-/* temporary disable for demo */
-#link {
-    display: none;
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 7;
+    pointer-events: none;
 }
