@@ -150,6 +150,8 @@ $ ->
 
         line = changeObj.to.line
         evalLine line
+
+        Cr.updateConnectionsForChange changeObj
     
     editor.on 'change', onChange
 
@@ -169,6 +171,10 @@ $ ->
 
         return nearest
 
+    Cr.valueString = (value) ->
+        editor.getRange { line: value.line, ch: value.start },
+            { line: value.line, ch: value.end }
+    
     ($ document).on 'mouseenter', '.cm-number', Cr.startHover
 
     editor.refresh()
