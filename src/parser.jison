@@ -45,9 +45,7 @@ expressions
     ;
 
 value
-    : value NUMBER
-        {$$ = $value.append(Number($NUMBER));}
-    | MINUS value %prec UMINUS
+    : MINUS value %prec UMINUS
         {$$ = $value.neg();}
     | NUMBER
         {$$ = new Cruncher.Value(Number($NUMBER));}
