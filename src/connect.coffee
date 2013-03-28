@@ -57,7 +57,7 @@ Cr.startConnect = (cid, value, ox, oy) ->
 Cr.connections = connections = {}
 
 connect = (cid, value) ->
-    connections[cid] ||= []
+    connections[cid] = connections[cid] ? []
     
     mark = Cr.editor.markText (Cr.valueFrom value),
         (Cr.valueTo value),
@@ -65,6 +65,7 @@ connect = (cid, value) ->
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
     connections[cid].push mark
+    console.log connections[cid]
     mark
 
 getMarkCid = (mark) -> # hack
@@ -87,8 +88,7 @@ disconnectMark = (cid, mark) ->
     if mark in connection
         mark.clear()
         i = connection.indexOf mark
-        connection = connection.splice i, 1 unless i == -1
-        connections[cid] = connection
+        connection.splice i, 1 unless i == -1
 
 Cr.newCid = ->
     for i in [0..100]
