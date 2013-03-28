@@ -78,6 +78,12 @@ getMarkCid = (mark) -> # hack
 disconnect = (cid, value) ->
     disconnectPos cid, Cr.valueFrom value
 
+    if connections[cid].length == 1
+        # only triggers with 'real' disconnect,
+        # not mark disconnect (which happens during
+        # connection-building, a special case)
+        disconnectMark cid, connections[cid][0]
+
 disconnectPos = (cid, pos) ->
     marks = Cr.editor.findMarksAt pos
     disconnectMark cid, mark for mark in marks

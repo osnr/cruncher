@@ -8,32 +8,25 @@ $ ->
         gutters: ['lineState']
         theme: 'cruncher'
 
-    Cr.getFreeMarkedSpans = getFreeMarkedSpans = (line) ->
+    getFreeMarkSpans = (line) ->
         handle = editor.getLineHandle line
         if handle.markedSpans?
-            return (span for span in handle.markedSpans \
+            (span for span in handle.markedSpans \
                 when span.marker.className == 'free-number')
         else
-            return []
+            []
     
-    parsedLines = []
+    Cr.parsedLines = parsedLines = []
     reparseLine = (line) ->
         text = editor.getLine line
        
         textToParse = text
-        markedPieces = []
 
-        freeMarkedSpans = getFreeMarkedSpans line
-        # FIXME work for > 1 mark
-        if freeMarkedSpans?[0]
-            freeMark = freeMarkedSpans[0]
-
-            markedPieces.push (text.substring 0, freeMark.from)
-            markedPieces.push (text.substring freeMark.to, text.length)
-
-            freePlaceholder = (Array freeMark.to - freeMark.from + 1).join ''
-
-            textToParse = markedPieces.join freePlaceholder # horrifying hack
+        spans = getFreeMarkSpans line
+        for span in spans
+            textToParse = (textToParse.substring 0, span.from) +
+                ((Array span.to - span.from + 1).join '') + # horrifying hack
+                (textToParse.substring span.to)
 
         try
             parsed = parser.parse textToParse
@@ -44,27 +37,10 @@ $ ->
             Cr.unsetLineState line, 'parseError'
             
         catch e
+            console.log textToParse
             parsedLines[line] = null
-
             Cr.setLineState line, 'parseError'
 
-    fixCursor = (oldCursor) ->
-        # runs while evaluating and constraining a line
-        # returns weakened version of onChange handler that just makes sure
-        # user's cursor stays in a sane position while we evalLine
-
-        return (instance, changeObj) ->
-            return unless oldCursor.line == changeObj.to.line
-
-            if oldCursor.ch > changeObj.from.ch
-                cursorOffset = changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
-                editor.setCursor
-                    line: oldCursor.line
-                    ch: oldCursor.ch + cursorOffset
-
-            else
-                editor.setCursor oldCursor
-            
     markAsFree = (from, to) ->
         editor.markText from, to,
             className: 'free-number'
@@ -72,6 +48,22 @@ $ ->
             inclusiveRight: false
             atomic: true
 
+    oldCursor = null
+    solveChange = (instance, changeObj) ->
+        # runs while evaluating and constraining a line
+        # returns weakened version of onChange handler that just makes sure
+        # user's cursor stays in a sane position while we evalLine
+
+        if changeObj.to.line == oldCursor.line and oldCursor.ch > changeObj.from.ch
+            cursorOffset = changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
+            editor.setCursor
+                line: oldCursor.line
+                ch: oldCursor.ch + cursorOffset
+
+        else
+            editor.setCursor oldCursor
+
+    evaluatingLines = []
     Cr.evalLine = evalLine = (line) ->
         # runs after a line changes
         # (except, of course, when evalLine is the changer)
@@ -84,9 +76,11 @@ $ ->
         Cr.unsetLineState line, stateName for stateName in \
             ['overDetermined', 'underDetermined']
         
-        editor.off 'change', onChange
-        fixOnChange = fixCursor editor.getCursor()
-        editor.on 'change', fixOnChange
+        # intercept change events for this line,
+        # but pass other lines (which might be dependencies)
+        # through to the normal handler
+        evaluatingLines[line] = true
+        oldCursor = editor.getCursor()
 
         text = editor.getLine line
         parsed = parsedLines[line]
@@ -107,13 +101,13 @@ $ ->
             reparseLine line
             
         else if parsed?.constructor == Cr.Equation
-            freeMarkedSpans = getFreeMarkedSpans line
-            
+            freeValues = (value for value in parsed.values when typeof value.num == 'function')
+            console.log 'freeValues', freeValues
             # search for free variables that we can change to keep the equality constraint
-            if freeMarkedSpans?.length < 1
+            if freeValues?.length < 1
                 Cr.setLineState line, 'overDetermined'
 
-            else if freeMarkedSpans?.length == 1
+            else if freeValues?.length == 1
                 [leftF, rightF] = for val in [parsed.left, parsed.right]
                     do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
 
@@ -121,23 +115,19 @@ $ ->
                     solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
                     solutionText = solution.toFixed 2
 
-                    editor.replaceRange solutionText,
-                        { line: line, ch: freeMarkedSpans[0].from },
-                        { line: line, ch: freeMarkedSpans[0].to }
-                    
-                    markAsFree { line: line, ch: freeMarkedSpans[0].from },
-                        { line: line, ch: freeMarkedSpans[0].from + solutionText.length }
+                    editor.replaceRange solutionText, (Cr.valueFrom freeValues[0]), (Cr.valueTo freeValues[0])
 
+                    markAsFree (Cr.valueFrom freeValues[0]),
+                        { line: line, ch: freeValues[0].start + solutionText.length }
                     reparseLine line
                     
                 catch e
-                    console.log 'The numeric solver was unable to solve this equation!', e
+                    console.log 'The numeric solver was unable to solve this equation!', e.stack, JSON.stringify e
 
             else
                 Cr.setLineState line, 'underDetermined'
 
-        editor.off 'change', fixOnChange
-        editor.on 'change', onChange
+        evaluatingLines[line] = false
 
     onChange = (instance, changeObj) ->
         # executes on user or cruncher change to text
@@ -145,7 +135,10 @@ $ ->
         return if not editor
 
         line = changeObj.to.line
-        evalLine line
+        if evaluatingLines[line]
+            solveChange instance, changeObj
+        else
+            evalLine line
 
         Cr.updateConnectionsForChange changeObj
     

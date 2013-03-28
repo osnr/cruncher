@@ -4,11 +4,11 @@ class Cr.NumberWidget
     constructor: (@value, @pos, @onLockChange) ->
         @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-circle-blank"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
 
-        for span in Cr.getFreeMarkedSpans @pos.line
-            if span.from == @value.start and span.to == @value.end and
-            span.marker.className == 'free-number'
-                @mark = span.marker
-                break
+        if typeof value.num == 'function'
+            # this is a free number
+            @mark = (mark for mark in Cr.editor.findMarksAt \
+                Cr.valueFrom value when mark.className == 'free-number')[0]
+            console.log @mark
 
         @cid = Cr.getCidFor @value
         if @cid?
@@ -73,6 +73,10 @@ class Cr.NumberWidget
             @mark = Cr.editor.markText (Cr.valueFrom @value),
                 (Cr.valueTo @value),
                 { className: 'free-number' }
+
+        ($ '#connect i.icon-circle-blank')
+            .removeClass('icon-circle-blank')
+            .addClass 'icon-circle-arrow-down'
 
         ($ '#unlock')
             .attr('id', 'lock')
