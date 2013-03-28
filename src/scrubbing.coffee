@@ -81,7 +81,8 @@ startDrag = (origin, value) -> onDragDown = (downEvent) ->
 
         # TODO avoid this hack to get around selection event firing order
         setTimeout (->
-            Cr.editor.off 'beforeSelectionChange', preventSelectionChange),
+            Cr.editor.off 'beforeSelectionChange', preventSelectionChange
+            Cr.editor.setCursor origin),
             100
 
         Cr.draggingState = dr = null
