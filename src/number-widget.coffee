@@ -26,7 +26,7 @@ class Cr.NumberWidget
                 top: coords.top
                 left: coords.left
             .mouseenter =>
-                @$number.unbind 'mouseleave'
+                @$number.off 'mouseleave'
 
                 @$numberWidget
                     .stop(true)
@@ -44,14 +44,11 @@ class Cr.NumberWidget
                 @onLockChange @pos.line
 
             .on 'mousedown', '#connect', (event) =>
-                fromCoords = Cr.editor.charCoords
-                    line: @pos.line
-                    ch: @value.start
-                toCoords = Cr.editor.charCoords
-                    line: @pos.line
-                    ch: @value.end
+                fromCoords = Cr.editor.charCoords Cr.valueFrom @value
+                toCoords = Cr.editor.charCoords Cr.valueTo @value
 
-                Cr.startConnect 0, @value,
+                Cr.startConnect (Cr.getCidFor @value) ? Cr.newCid(),
+                    @value,
                     (toCoords.left + fromCoords.left) / 2,
                     (fromCoords.bottom + fromCoords.top) / 2
 
@@ -66,8 +63,8 @@ class Cr.NumberWidget
 
     setFreeNumber: ($target) =>
         if not @mark?
-            @mark = Cr.editor.markText { line: @pos.line, ch: @value.start },
-                { line: @pos.line, ch: @value.end },
+            @mark = Cr.editor.markText (Cr.valueFrom @value),
+                (Cr.valueTo @value),
                 { className: 'free-number' }
 
         ($ '#unlock')

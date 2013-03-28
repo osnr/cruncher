@@ -37,9 +37,13 @@
     color: #630D0A;
 }
 
-.connected-number-cid-0 {
-    background-color: rgba(128, 128, 128, 0.6);
-}
+.connected-number-cid-0 { background-color: rgba(64, 128, 128, 0.6); }
+.connected-number-cid-1 { background-color: rgba(128, 64, 128, 0.6); }
+.connected-number-cid-2 { background-color: rgba(128, 128, 64, 0.6); }
+.connected-number-cid-3 { background-color: rgba(64, 128, 64, 0.6); }
+.connected-number-cid-4 { background-color: rgba(128, 64, 64, 0.6); }
+.connected-number-cid-5 { background-color: rgba(64, 64, 128, 0.6); }
+.connected-number-cid-6 { background-color: rgba(64, 64, 64, 0.6); }
 
 .number-widget {
     position: absolute;
@@ -60,6 +64,10 @@
 }
 .free-number-widget.number-widget a :hover {
     color: #AF4A46;
+}
+
+.free-number-widget.number-widget a#connect {
+    display: none;
 }
 
 .cm-s-cruncher .cm-op {

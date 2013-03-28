@@ -62,10 +62,6 @@ $ ->
                     line: oldCursor.line
                     ch: oldCursor.ch + cursorOffset
 
-                # TODO put this somewhere else so drag logic isn't mixed with eval logic
-                if Cr.draggingState?
-                    Cr.draggingState.from.ch += cursorOffset
-                    Cr.draggingState.to.ch += cursorOffset
             else
                 editor.setCursor oldCursor
             
@@ -171,9 +167,14 @@ $ ->
 
         return nearest
 
+    Cr.valueFrom = (value) ->
+        { line: value.line, ch: value.start }
+
+    Cr.valueTo = (value) ->
+        { line: value.line, ch: value.end }
+    
     Cr.valueString = (value) ->
-        editor.getRange { line: value.line, ch: value.start },
-            { line: value.line, ch: value.end }
+        editor.getRange (Cr.valueFrom value), (Cr.valueTo value)
     
     ($ document).on 'mouseenter', '.cm-number', Cr.startHover
 

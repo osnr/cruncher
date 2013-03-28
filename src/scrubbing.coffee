@@ -1,11 +1,11 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-Cr.draggingState = dr = null
+scr = null
 
 Cr.startHover = (enterEvent) ->
     # add hover class, construct number widget
     # when user hovers over a number
-    return if dr?
+    return if scr?
 
     hoverPos = Cr.editor.coordsChar
         left: enterEvent.pageX
@@ -27,27 +27,31 @@ Cr.startHover = (enterEvent) ->
 
         ($ this).addClass('hovering-number')
             .not('.free-number')
-                .mousedown startDrag hoverPos, hoverValue
+                .on 'mousedown.scrub', startDrag hoverPos, hoverValue
 
         (new Cr.NumberWidget hoverValue,
             hoverPos,
             (line) -> Cr.evalLine line).show()
 
-startDrag = (origin, value) -> onDragDown = (downEvent) ->
+startDrag = (origin, value) -> (downEvent) =>
     # initiate and handle dragging/scrubbing behavior
 
-    ($ this).addClass 'dragging-number'
+    ($ document).off('mousemove.scrub').off 'mouseup.scrub'
+    scr?.mark?.clear()
     ($ '.number-widget').remove()
 
-    Cr.draggingState = dr = {}
+    scr = {}
 
-    dr.origin = origin
+    scr.origin = origin
 
-    dr.num = value.num
-    dr.fixedDigits = value.toString().split('.')[1]?.length ? 0
+    scr.num = value.num
+    scr.fixedDigits = value.toString().split('.')[1]?.length ? 0
 
-    dr.from = line: dr.origin.line, ch: value.start
-    dr.to = line: dr.origin.line, ch: value.end
+    scr.mark = Cr.editor.markText (Cr.valueFrom value),
+        (Cr.valueTo value),
+        className: 'dragging-number'
+        inclusiveLeft: true # so mark survives replacement of its inside
+        inclusiveRight: true
 
     xCenter = downEvent.pageX
 
@@ -64,20 +68,18 @@ startDrag = (origin, value) -> onDragDown = (downEvent) ->
         delta = if xOffset >= 2 then 1 else if xOffset <= -2 then -1 else 0
 
         if delta != 0
-            dr.num += delta
+            range = scr.mark.find()
+            
+            scr.num += delta
 
-            numString = dr.num.toFixed dr.fixedDigits
-            Cr.editor.replaceRange numString, dr.from, dr.to
-
-            dr.to.ch = dr.from.ch + numString.length
+            numString = scr.num.toFixed scr.fixedDigits
+            Cr.editor.replaceRange numString, range.from, range.to
     
     onDragUp = =>
-        ($ '.dragging-number').removeClass 'dragging-number'
+        scr.mark.clear()
 
-        ($ this).off 'mousedown', onDragDown
-
-        ($ document).off('mousemove', onDragMove)
-            .off 'mouseup', onDragUp
+        ($ document).off('mousemove.scrub')
+            .off 'mouseup.scrub'
 
         # TODO avoid this hack to get around selection event firing order
         setTimeout (->
@@ -85,7 +87,8 @@ startDrag = (origin, value) -> onDragDown = (downEvent) ->
             Cr.editor.setCursor origin),
             100
 
-        Cr.draggingState = dr = null
+        scr = null
 
-    ($ document).on('mousemove', onDragMove)
-        .on 'mouseup', onDragUp
+    ($ document).on('mousemove.scrub', onDragMove)
+        .on 'mouseup.scrub', onDragUp
+    ($ this).off 'mousedown.scrub'

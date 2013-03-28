@@ -16,54 +16,56 @@ Cr.startConnect = (cid, value, ox, oy) ->
             stroke: '#003056'
             'stroke-width': 2
 
-    onMoveConnect = moveConnect cid, originPath, originCursor, path
-    onUpConnect = endConnect cid, value, onMoveConnect, path
-
-    ($ '.CodeMirror').css 'pointer-events', 'none'
-
-    ($ document)
-        .mousemove(onMoveConnect)
-        .mouseup onUpConnect
-        # .css 'cursor', 'pointer'
-
-moveConnect = (cid, originPath, originCursor, path) ->
     prevTargetValue = null
     prevTargetMark = null
-    (event) ->
+    onMoveConnect = (event) ->
         path.attr 'path', originPath + 'L'+event.pageX+','+event.pageY
         targetValue = Cr.nearestValue Cr.editor.coordsChar
             left: event.pageX
             top: event.pageY + 2
 
         if targetValue != prevTargetValue
-            prevTargetMark?.clear()
+            disconnectMark cid, prevTargetMark if prevTargetMark?
             prevTargetMark = null
             prevTargetValue = null
 
-            if targetValue?
+            if targetValue? and not (getCidFor targetValue)?
                 prevTargetMark = connect cid, targetValue
                 prevTargetValue = targetValue
 
         Cr.editor.setCursor originCursor
 
-endConnect = (cid, value, onMoveConnect, path) -> onUpConnect = ->
-    ($ '.CodeMirror').css 'pointer-events', 'auto'
-    ($ document)
-        .unbind('mousemove', onMoveConnect)
-        .unbind 'mouseup', onUpConnect
-    path.remove()
+    onUpConnect = ->
+        ($ '.CodeMirror').css 'pointer-events', 'auto'
+        ($ document)
+            .unbind('mousemove.connect')
+            .unbind 'mouseup.connect'
+        path.remove()
 
-    updateConnections cid, Cr.valueString value
+        if prevTargetMark? # did we actually connect?
+            updateConnections cid, Cr.valueString value
+        else
+            disconnect cid, value
+
+    ($ '.CodeMirror').css 'pointer-events', 'none'
+
+    ($ document)
+        .on('mousemove.connect', onMoveConnect)
+        .on 'mouseup.connect', onUpConnect
+        # .css 'cursor', 'pointer'
+
+Cr.connections = connections = {}
 
 connect = (cid, value) ->
-    from = { line: value.line, ch: value.start }
-    to = { line: value.line, ch: value.end }
-
-    Cr.editor.markText from, to,
+    connections[cid] ||= []
+    
+    mark = Cr.editor.markText (Cr.valueFrom value),
+        (Cr.valueTo value),
         className: 'connected-number-cid-' + cid
-        inclusiveLeft: true
+        inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
-        cid: cid
+    connections[cid].push mark
+    mark
 
 getMarkCid = (mark) -> # hack
     className = mark.getOptions()['className']
@@ -72,9 +74,42 @@ getMarkCid = (mark) -> # hack
     else
         null
 
+disconnect = (cid, value) ->
+    disconnectPos cid, Cr.valueFrom value
+
+disconnectPos = (cid, pos) ->
+    marks = Cr.editor.findMarksAt pos
+    disconnectMark cid, mark for mark in marks
+
+disconnectMark = (cid, mark) ->
+    connection = connections[cid]
+
+    if mark in connection
+        mark.clear()
+        i = connection.indexOf mark
+        connection = connection.splice i, 1 unless i == -1
+        connections[cid] = connection
+
+Cr.newCid = ->
+    for i in [0..100]
+        return i unless connections[i]?.length > 0
+
+findMarksIn = (from, to) ->
+    marks = (Cr.editor.findMarksAt from).concat \
+        Cr.editor.findMarksAt to
+
+    (mark for mark in marks when mark.getOptions()['className']
+        .match /^connected-number-cid-\d+/)    
+
+Cr.getCidFor = getCidFor = (value) ->
+    marks = findMarksIn (Cr.valueFrom value), (Cr.valueTo value)
+    for mark in marks
+        return getMarkCid mark
+
+    return null
+
 Cr.updateConnectionsForChange = (changeObj) ->
-    marks = (Cr.editor.findMarksAt changeObj.from).concat \
-        Cr.editor.findMarksAt changeObj.to
+    marks = findMarksIn changeObj.from, changeObj.to
 
     for mark in marks
         markCid = getMarkCid mark
@@ -83,16 +118,7 @@ Cr.updateConnectionsForChange = (changeObj) ->
             updateConnections markCid, (Cr.editor.getRange range.from, range.to)
 
 updateConnections = (cid, newString) ->
-    for mark in Cr.editor.getAllMarks()
-        if (getMarkCid mark) == cid
-            range = mark.find()
-            if (Cr.editor.getRange range.from, range.to) != newString
-                Cr.editor.replaceRange newString, range.from, range.to
-
-# FIXME make value do something
-# disconnect = (cid, value) ->
-#     for mark in Cr.editor.getAllMarks()
-#         className = mark.getOptions()['className']
-#         markCid = className.substring ((className.lastIndexOf '-') + 1)
-
-#         mark.clear() if (parseFloat markCid) == cid
+    for mark in connections[cid]
+        range = mark.find()
+        if (Cr.editor.getRange range.from, range.to) != newString
+            Cr.editor.replaceRange newString, range.from, range.to
