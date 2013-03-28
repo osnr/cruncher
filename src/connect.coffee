@@ -1,8 +1,8 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-paper = null
+window.paper = null
 $ ->
-    paper = Raphael 'overlay', '100%', '100%'
+    window.paper = Raphael 'overlay', '100%', '100%'
 
 Cr.startConnect = (cid, value, ox, oy) ->
     connect cid, value

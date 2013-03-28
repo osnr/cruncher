@@ -10,7 +10,7 @@ $ ->
 
     getFreeMarkSpans = (line) ->
         handle = editor.getLineHandle line
-        if handle.markedSpans?
+        if handle?.markedSpans?
             (span for span in handle.markedSpans \
                 when span.marker.className == 'free-number')
         else

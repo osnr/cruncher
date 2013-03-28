@@ -31,7 +31,7 @@ lineStates =
         gutterMarker:
             makeGutterMarker 'under-determined-icon',
                 'icon-unlock',
-                'This line has too many <span class="over-determined-free">free numbers</span>!'
+                'This line has too many <span class="over-determined-free">free numbers</span>! I don\'t know how to solve it.'
         lineClass: 'under-determined-line'
 
 stateNameLines = []
