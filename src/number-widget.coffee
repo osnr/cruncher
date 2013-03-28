@@ -2,7 +2,7 @@ window.Cruncher = Cr = window.Cruncher || {}
 
 class Cr.NumberWidget
     constructor: (@value, @pos, @onLockChange) ->
-        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-link"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
+        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-circle-blank"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
 
         for span in Cr.getFreeMarkedSpans @pos.line
             if span.from == @value.start and span.to == @value.end and
@@ -10,6 +10,13 @@ class Cr.NumberWidget
                 @mark = span.marker
                 break
 
+        @cid = Cr.getCidFor @value
+        if @cid?
+            @$numberWidget.find('#connect i')
+                .addClass('icon-circle')
+                .removeClass 'icon-circle-blank'
+        else
+            @cid = Cr.newCid()
     show: ->
         ($ '.number-widget').remove()
         
@@ -47,7 +54,7 @@ class Cr.NumberWidget
                 fromCoords = Cr.editor.charCoords Cr.valueFrom @value
                 toCoords = Cr.editor.charCoords Cr.valueTo @value
 
-                Cr.startConnect (Cr.getCidFor @value) ? Cr.newCid(),
+                Cr.startConnect @cid,
                     @value,
                     (toCoords.left + fromCoords.left) / 2,
                     (fromCoords.bottom + fromCoords.top) / 2

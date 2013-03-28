@@ -59,6 +59,10 @@
 .number-widget a :hover {
     color: #00A1D9;
 }
+.number-widget a#connect {
+    cursor: move;
+}
+
 .free-number-widget.number-widget a {
     color: #630D0A;
 }
