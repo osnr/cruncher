@@ -27,22 +27,24 @@ Cr.startHover = (enterEvent) ->
 
         ($ this).addClass('hovering-number')
             .not('.free-number')
-                .on 'mousedown.scrub', startDrag hoverPos, hoverValue
+                .on 'mousedown.scrub', startDrag hoverValue
 
         (new Cr.NumberWidget hoverValue,
             hoverPos,
             (line) -> Cr.evalLine line).show()
 
-startDrag = (origin, value) -> (downEvent) =>
+startDrag = (value) -> (downEvent) =>
     # initiate and handle dragging/scrubbing behavior
 
     ($ document).off('mousemove.scrub').off 'mouseup.scrub'
     scr?.mark?.clear()
     ($ '.number-widget').remove()
 
+    origin = Cr.editor.coordsChar
+        left: downEvent.pageX
+        top: downEvent.pageY
+    
     scr = {}
-
-    scr.origin = origin
 
     scr.num = value.num
     scr.fixedDigits = value.toString().split('.')[1]?.length ? 0
@@ -55,12 +57,6 @@ startDrag = (origin, value) -> (downEvent) =>
 
     xCenter = downEvent.pageX
 
-    preventSelectionChange = (instance, selection) ->
-        selection.anchor = instance.getCursor 'anchor'
-        selection.head = instance.getCursor 'head'
-
-    Cr.editor.on 'beforeSelectionChange', preventSelectionChange
-    
     onDragMove = (moveEvent) =>
         xOffset = moveEvent.pageX - xCenter
         xCenter = moveEvent.pageX
@@ -81,11 +77,11 @@ startDrag = (origin, value) -> (downEvent) =>
         ($ document).off('mousemove.scrub')
             .off 'mouseup.scrub'
 
-        # TODO avoid this hack to get around selection event firing order
+        # TODO remove this selection-restoring hack
         setTimeout (->
-            Cr.editor.off 'beforeSelectionChange', preventSelectionChange
-            Cr.editor.setCursor origin),
-            100
+            console.log 'timeout, setting cursor to', origin
+            Cr.editor.focus()
+            Cr.editor.setCursor origin), 100
 
         scr = null
 
