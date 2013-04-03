@@ -7,6 +7,10 @@ $ ->
         lineWrapping: true,
         gutters: ['lineState']
         theme: 'cruncher'
+    # There are two extra properties we put on each line handle in CodeMirror.
+    #     evaluating: is this line being evaluated?
+    #     parsed: parse / evaluation object for the line
+    # They're attached to the handle so that they follow the line around if it moves.
 
     getFreeMarkSpans = (line) ->
         handle = editor.getLineHandle line
@@ -16,9 +20,9 @@ $ ->
         else
             []
     
-    Cr.parsedLines = parsedLines = []
     reparseLine = (line) ->
         text = editor.getLine line
+        handle = editor.getLineHandle line
        
         textToParse = text
 
@@ -32,13 +36,16 @@ $ ->
             parsed = parser.parse textToParse
             if parsed?.values?
                 value.line = line for value in parsed.values
-                parsedLines[line] = parsed
-
+                editor.on handle, 'change', (line, changeObj) -> console.log 'line', line, changeObj
+                handle.parsed = parsed
+            else
+                handle.parsed = null
+            
             Cr.unsetLineState line, 'parseError'
             
         catch e
-            console.log textToParse
-            parsedLines[line] = null
+            console.log 'parse error', line, textToParse
+            handle.parsed = null
             Cr.setLineState line, 'parseError'
 
     markAsFree = (from, to) ->
@@ -53,17 +60,21 @@ $ ->
         # runs while evaluating and constraining a line
         # returns weakened version of onChange handler that just makes sure
         # user's cursor stays in a sane position while we evalLine
+        # 
+        # e.g. {2} |+ 3 = 5 -> {20} |+ 3 = 5
+        #      we shift the cursor right 1 character
 
         if changeObj.to.line == oldCursor.line and oldCursor.ch > changeObj.from.ch
             cursorOffset = changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
-            editor.setCursor
+            newCursor =
                 line: oldCursor.line
                 ch: oldCursor.ch + cursorOffset
+            editor.setCursor newCursor
+            oldCursor = newCursor
 
         else
             editor.setCursor oldCursor
 
-    evaluatingLines = []
     Cr.evalLine = evalLine = (line) ->
         # runs after a line changes
         # (except, of course, when evalLine is the changer)
@@ -75,15 +86,18 @@ $ ->
 
         Cr.unsetLineState line, stateName for stateName in \
             ['overDetermined', 'underDetermined']
+
+        handle = editor.getLineHandle line
         
         # intercept change events for this line,
         # but pass other lines (which might be dependencies)
         # through to the normal handler
-        evaluatingLines[line] = true
+        # TODO deal with circular dependencies (this makes them undefined behavior)
+        handle.evaluating = true
         oldCursor = editor.getCursor()
 
         text = editor.getLine line
-        parsed = parsedLines[line]
+        parsed = handle.parsed
         if parsed?.constructor == Cr.Expression # edited a line without another side (yet)
             freeString = parsed.toString()
 
@@ -127,30 +141,42 @@ $ ->
             else
                 Cr.setLineState line, 'underDetermined'
 
-        evaluatingLines[line] = false
+        handle.evaluating = false
 
     onChange = (instance, changeObj) ->
+        console.log changeObj
         # executes on user or cruncher change to text
         # (except during evalLine)
-        return if not editor
+        for line in [changeObj.from.line..changeObj.to.line]
+            console.log 'reeval', line
+            
+            handle = editor.getLineHandle line
+            continue unless handle
 
-        line = changeObj.to.line
-        if evaluatingLines[line]
-            solveChange instance, changeObj
-        else
-            evalLine line
+            if handle.evaluating
+                solveChange instance, changeObj
+            else
+                evalLine line
 
+        # replace all value locations that might be affected by a newline
+        if changeObj.text.length > 1
+            for line in [changeObj.to.line + 1..editor.lineCount() - 1]
+                handle = editor.getLineHandle line
+                continue unless handle.parsed?.values?
+
+                for value in handle.parsed.values
+                    value.line = line
+        
         Cr.updateConnectionsForChange changeObj
-    
+
     editor.on 'change', onChange
 
     Cr.nearestValue = nearestValue = (pos) ->
         # find nearest number (Value) to pos = { line, ch }
         # used for identifying hover/drag target
 
-        parsed = parsedLines[pos.line]
-        return unless parsed? and
-            pos.ch < (editor.getLine pos.line).length
+        parsed = (editor.getLineHandle pos.line).parsed
+        return unless parsed?
 
         nearest = null
         for value in parsed.values

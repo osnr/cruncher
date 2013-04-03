@@ -16,14 +16,16 @@ Cr.startHover = (enterEvent) ->
     if not hoverValue?
         hoverPos = Cr.editor.coordsChar
             left: enterEvent.pageX
-            top: enterEvent.pageY + 2 # ugly hack because coordsChar's hit box doesn't quite line up with the DOM hover hit box
+            # ugly hack because coordsChar's hit box
+            # doesn't quite line up with the DOM hover hit box
+            top: enterEvent.pageY + 2
 
         hoverValue = Cr.nearestValue hoverPos
 
     if hoverValue?
         ($ '.hovering-number').removeClass 'hovering-number'
 
-        ($ '.number-widget').stop(true)
+        ($ '.number-widget').stop true
 
         ($ this).addClass('hovering-number')
             .not('.free-number')
