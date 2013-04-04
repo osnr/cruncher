@@ -8,9 +8,8 @@ class Cr.NumberWidget
             # this is a free number
             @mark = (mark for mark in Cr.editor.findMarksAt \
                 Cr.valueFrom value when mark.className == 'free-number')[0]
-            console.log @mark
 
-        @cid = Cr.getCidFor @value
+        @cid = Cr.getValueCid @value
         if @cid?
             @$numberWidget.find('#connect i')
                 .addClass('icon-circle')
@@ -70,9 +69,8 @@ class Cr.NumberWidget
 
     setFreeNumber: ($target) =>
         if not @mark?
-            @mark = Cr.editor.markText (Cr.valueFrom @value),
-                (Cr.valueTo @value),
-                { className: 'free-number' }
+            @mark = Cr.markAsFree (Cr.valueFrom @value),
+                (Cr.valueTo @value)
 
         ($ '#connect i.icon-circle-blank')
             .removeClass('icon-circle-blank')

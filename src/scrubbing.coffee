@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-scr = null
+Cr.scr = scr = null
 
 Cr.startHover = (enterEvent) ->
     # add hover class, construct number widget
@@ -39,23 +39,28 @@ startDrag = (value) -> (downEvent) =>
     # initiate and handle dragging/scrubbing behavior
 
     ($ document).off('mousemove.scrub').off 'mouseup.scrub'
-    scr?.mark?.clear()
+    if scr?.mark?
+        console.log 'mark'
+        scr?.mark?.clear()
     ($ '.number-widget').remove()
 
     origin = Cr.editor.coordsChar
         left: downEvent.pageX
         top: downEvent.pageY
     
-    scr = {}
+    Cr.scr = scr = {}
 
     scr.num = value.num
-    scr.fixedDigits = value.toString().split('.')[1]?.length ? 0
+    scr.fixedDigits = value.numString().split('.')[1]?.length ? 0
 
     scr.mark = Cr.editor.markText (Cr.valueFrom value),
         (Cr.valueTo value),
         className: 'dragging-number'
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
+
+    graphMarks = [scr.mark].concat Cr.depsOnValue value
+    Cr.addGraph graphMarks
 
     xCenter = downEvent.pageX
 
@@ -72,20 +77,23 @@ startDrag = (value) -> (downEvent) =>
 
             numString = scr.num.toFixed scr.fixedDigits
             Cr.editor.replaceRange numString, range.from, range.to
-    
+
+            Cr.updateGraph graphMarks
+
     onDragUp = =>
         scr.mark.clear()
 
         ($ document).off('mousemove.scrub')
             .off 'mouseup.scrub'
 
+        Cr.removeGraph value.line
+
         # TODO remove this selection-restoring hack
         setTimeout (->
-            console.log 'timeout, setting cursor to', origin
             Cr.editor.focus()
             Cr.editor.setCursor origin), 100
 
-        scr = null
+        Cr.scr = scr = null
 
     ($ document).on('mousemove.scrub', onDragMove)
         .on 'mouseup.scrub', onDragUp

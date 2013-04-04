@@ -11,6 +11,9 @@
     overflow-y: hidden;
     overflow-x: auto;
 }
+.CodeMirror-linenumber {
+    min-width: 30px;
+}
 .cm-s-cruncher .CodeMirror-cursor {
     height: 18px;
 }
@@ -108,4 +111,16 @@
     width: 100%;
     z-index: 7;
     pointer-events: none;
+}
+
+.graph-wrapper {
+    height: 100px;
+    background-color: #f7f7f7;
+    overflow: hidden;
+}
+
+.chart {
+    position: absolute;
+    width: 100px;
+    height: 100px;
 }

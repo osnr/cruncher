@@ -1,8 +1,8 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-window.paper = null
+paper = null
 $ ->
-    window.paper = Raphael 'overlay', '100%', '100%'
+    paper = Raphael 'overlay', '100%', '100%'
 
 Cr.startConnect = (cid, value, ox, oy) ->
     connect cid, value
@@ -29,7 +29,7 @@ Cr.startConnect = (cid, value, ox, oy) ->
             prevTargetMark = null
             prevTargetValue = null
 
-            if targetValue? and not (getCidFor targetValue)?
+            if targetValue? and not (getValueCid targetValue)?
                 prevTargetMark = connect cid, targetValue
                 prevTargetValue = targetValue
 
@@ -65,7 +65,6 @@ connect = (cid, value) ->
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
     connections[cid].push mark
-    console.log connections[cid]
     mark
 
 getMarkCid = (mark) -> # hack
@@ -100,31 +99,60 @@ Cr.newCid = ->
     for i in [0..100]
         return i unless connections[i]?.length > 0
 
-findMarksIn = (from, to) ->
+findMark = (from, to) ->
     marks = (Cr.editor.findMarksAt from).concat \
         Cr.editor.findMarksAt to
 
-    (mark for mark in marks when mark.getOptions()['className']
-        .match /^connected-number-cid-\d+/)    
-
-Cr.getCidFor = getCidFor = (value) ->
-    marks = findMarksIn (Cr.valueFrom value), (Cr.valueTo value)
     for mark in marks
-        return getMarkCid mark
+        if mark.getOptions()['className'].match /^connected-number-cid-\d+/
+            return mark
 
-    return null
+Cr.getValueCid = getValueCid = (value) ->
+    mark = findMark (Cr.valueFrom value), (Cr.valueTo value)
+    if mark?
+        getMarkCid mark
+    else
+        null
 
 Cr.updateConnectionsForChange = (changeObj) ->
-    marks = findMarksIn changeObj.from, changeObj.to
-
-    for mark in marks
+    mark = findMark changeObj.from, changeObj.to
+    if mark?
         markCid = getMarkCid mark
-        if markCid?
-            range = mark.find()
-            updateConnections markCid, (Cr.editor.getRange range.from, range.to)
+
+        range = mark.find()
+        updateConnections markCid, (Cr.editor.getRange range.from, range.to)
 
 updateConnections = (cid, newString) ->
     for mark in connections[cid]
         range = mark.find()
         if (Cr.editor.getRange range.from, range.to) != newString
             Cr.editor.replaceRange newString, range.from, range.to
+
+Cr.depsOnValue = depsOnValue = (value, sameConnection) ->
+    # takes a value `value`, returns all _marks_ dependent on `value`
+    # either same-line free numbers or connected numbers
+    # (not including `value` itself)
+    deps = []
+
+    # find free deps
+    parsed = (Cr.editor.getLineHandle value.line).parsed
+    freeValues = (v for v in parsed.values when typeof v.num == 'function')
+    for freeValue in freeValues
+        if freeValue != value
+            deps.push.apply deps, depsOnValue freeValue
+            deps.push (mark for mark in Cr.editor.findMarksAt \
+                Cr.valueFrom freeValue when mark.className == 'free-number')[0]
+
+    if sameConnection then return deps
+
+    # find connection deps
+    mark = findMark (Cr.valueFrom value), (Cr.valueTo value)
+    cid = getMarkCid mark if mark?
+    if cid?
+        for cMark in connections[cid]
+            cValue = Cr.nearestValue cMark.find().from
+            if cValue != value
+                deps.push.apply deps, (depsOnValue cValue, true)
+                deps.push cMark
+
+    return deps

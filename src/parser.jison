@@ -4,8 +4,8 @@
 %lex
 %%
 
-.+":"$                    return 'HEADING'
-[\s"$""%"]+                      /* skip whitespace, units */
+.+":"$                   return 'HEADING'
+[\s"$""%"]+              /* skip whitespace, units */
 ""+                    return 'FREE' /* horrible hack */
 [0-9\.]+                 return 'NUMBER'
 "="                      return 'EQUALS'

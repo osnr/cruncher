@@ -12,6 +12,12 @@ $ ->
     #     parsed: parse / evaluation object for the line
     # They're attached to the handle so that they follow the line around if it moves.
 
+    # generate unique ids for text markers
+    # used in graphs so that we can have a (mark, chart) map
+    CodeMirror.TextMarker.prototype.toString = do ->
+        id = 0
+        -> @id ? @id = id++
+
     getFreeMarkSpans = (line) ->
         handle = editor.getLineHandle line
         if handle?.markedSpans?
@@ -48,11 +54,13 @@ $ ->
             handle.parsed = null
             Cr.setLineState line, 'parseError'
 
-    markAsFree = (from, to) ->
+    Cr.markAsFree = markAsFree = (from, to) ->
         editor.markText from, to,
             className: 'free-number'
-            inclusiveLeft: false
-            inclusiveRight: false
+            # FIXME hack so that free marker stays in place
+            # when we replace the whole thing
+            inclusiveLeft: true
+            inclusiveRight: true
             atomic: true
 
     oldCursor = null
@@ -78,7 +86,7 @@ $ ->
     Cr.evalLine = evalLine = (line) ->
         # runs after a line changes
         # (except, of course, when evalLine is the changer)
-        # reconstrain the free variable(s) [currently only 1 is supported]
+        # reconstrain the free number(s) [currently only 1 is supported]
         # so that the equation is true,
         # or make the line an equation
 
@@ -99,7 +107,7 @@ $ ->
         text = editor.getLine line
         parsed = handle.parsed
         if parsed?.constructor == Cr.Expression # edited a line without another side (yet)
-            freeString = parsed.toString()
+            freeString = parsed.numString()
 
             from =
                 line: line
@@ -108,48 +116,34 @@ $ ->
                 line: line
                 ch: text.length + ' = '.length + freeString.length
 
-            editor.replaceRange ' = ' + freeString, from, from
+            # FIXME hack so you can touch end of line
+            editor.replaceRange ' = ' + freeString + ' ', from, from
 
             markAsFree from, to
 
             reparseLine line
             
         else if parsed?.constructor == Cr.Equation
-            freeValues = (value for value in parsed.values when typeof value.num == 'function')
-            console.log 'freeValues', freeValues
-            # search for free variables that we can change to keep the equality constraint
-            if freeValues?.length < 1
-                Cr.setLineState line, 'overDetermined'
+            try
+                [freeValue, solution] = parsed.solve()
+                editor.replaceRange (solution.toFixed 2),
+                    (Cr.valueFrom freeValue),
+                    (Cr.valueTo freeValue)
 
-            else if freeValues?.length == 1
-                [leftF, rightF] = for val in [parsed.left, parsed.right]
-                    do (val) -> if typeof val.num == 'function' then val.num else (x) -> val.num
+                reparseLine line
 
-                try
-                    solution = (numeric.uncmin ((x) -> (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
-                    solutionText = solution.toFixed 2
-
-                    editor.replaceRange solutionText, (Cr.valueFrom freeValues[0]), (Cr.valueTo freeValues[0])
-
-                    markAsFree (Cr.valueFrom freeValues[0]),
-                        { line: line, ch: freeValues[0].start + solutionText.length }
-                    reparseLine line
-                    
-                catch e
-                    console.log 'The numeric solver was unable to solve this equation!', e.stack, JSON.stringify e
-
-            else
-                Cr.setLineState line, 'underDetermined'
+            catch e
+                if e instanceof Cr.OverDeterminedException
+                    Cr.setLineState line, 'overDetermined'
+                else if e instanceof Cr.UnderDeterminedException
+                    Cr.setLineState line, 'underDetermined'
 
         handle.evaluating = false
 
     onChange = (instance, changeObj) ->
-        console.log changeObj
         # executes on user or cruncher change to text
         # (except during evalLine)
         for line in [changeObj.from.line..changeObj.to.line]
-            console.log 'reeval', line
-            
             handle = editor.getLineHandle line
             continue unless handle
 
@@ -166,7 +160,7 @@ $ ->
 
                 for value in handle.parsed.values
                     value.line = line
-        
+
         Cr.updateConnectionsForChange changeObj
 
     editor.on 'change', onChange
@@ -194,7 +188,7 @@ $ ->
     
     Cr.valueString = (value) ->
         editor.getRange (Cr.valueFrom value), (Cr.valueTo value)
-    
+
     ($ document).on 'mouseenter', '.cm-number', Cr.startHover
 
     editor.refresh()
