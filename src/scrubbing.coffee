@@ -39,10 +39,12 @@ startDrag = (value) -> (downEvent) =>
     # initiate and handle dragging/scrubbing behavior
 
     ($ document).off('mousemove.scrub').off 'mouseup.scrub'
-    if scr?.mark?
-        console.log 'mark'
-        scr?.mark?.clear()
+    scr?.mark?.clear()
     ($ '.number-widget').remove()
+    Cr.editor.eachLine (handle) ->
+        return unless handle.graph?
+        handle.graph.widget.clear()
+        delete handle.graph
 
     origin = Cr.editor.coordsChar
         left: downEvent.pageX

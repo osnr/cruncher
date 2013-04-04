@@ -19,7 +19,7 @@ graphForLineHandle = (line, handle) ->
 
 getData = (chart, curY, indepValue) ->
     [ ([Cr.scr.num + (dx * 0.05),
-        chart.markF Cr.scr.num + (dx * 0.05), curY, indepValue] for dx in [-100..100]) ]
+        chart.markF Cr.scr.num + (dx * 0.05), curY, indepValue] for dx in [-500..500]) ]
 
 addChart = (mark) ->
     range = mark.find()
