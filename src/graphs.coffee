@@ -17,9 +17,9 @@ graphForLineHandle = (line, handle) ->
 
     g
 
-getData = (chart, curY, indepValue) ->
+getData = (chart, indepValue) ->
     [ ([Cr.scr.num + (dx * 0.05),
-        chart.markF Cr.scr.num + (dx * 0.05), curY, indepValue] for dx in [-500..500]) ]
+        chart.markF Cr.scr.num + (dx * 0.05), indepValue] for dx in [-500..500]) ]
 
 addChart = (mark) ->
     range = mark.find()
@@ -47,12 +47,12 @@ addChart = (mark) ->
 
     markNum = parseFloat Cr.editor.getRange range.from, range.to
     if mark.className == 'free-number'
-        chart.markF = (x, curY, indepValue) ->
+        chart.markF = (x, indepValue) ->
             handle.parsed.substitute(indepValue, x).solve()[1]
 
     else
-        chart.markF = (x, curY, indepValue) ->
-            (curY - Cr.scr.num) + x
+        chart.markF = (x, indepValue) ->
+            x
     window.markF = chart.markF
 
     chart.$chart = ($ '<div class="chart"></div>')
@@ -61,7 +61,7 @@ addChart = (mark) ->
             left: x
         .appendTo g.$wrapper
     chart.plot = $.plot chart.$chart,
-        (getData chart, markNum, indepValue),
+        (getData chart, indepValue),
         grid:
             markings: [{
                 color: '#003056'
@@ -100,8 +100,7 @@ updateChart = (mark) ->
     markNum = parseFloat Cr.editor.getRange range.from, range.to
     indepValue = Cr.nearestValue Cr.scr.mark.find().from
 
-    data = getData chart, markNum, indepValue
-    chart.plot.setData getData chart, markNum, indepValue
+    chart.plot.setData getData chart, indepValue
 
     markings = chart.plot.getOptions().grid.markings
     markings[2] =
@@ -117,7 +116,18 @@ updateChart = (mark) ->
             from: markNum
             to: markNum
 
-    chart.plot.setupGrid();
+    axes = chart.plot.getAxes()
+    xaxis = axes.xaxis
+    xaxis.options.min = xaxis.min + Cr.scr.delta
+    xaxis.options.max = xaxis.max + Cr.scr.delta
+    console.log 'xaxis', xaxis.options.min, xaxis.options.max
+
+    yaxis = axes.yaxis
+    yaxis.options.min = chart.markF xaxis.min + Cr.scr.delta, indepValue
+    yaxis.options.max = chart.markF xaxis.max + Cr.scr.delta, indepValue
+    console.log 'yaxis', yaxis.options.min, yaxis.options.max
+
+    chart.plot.setupGrid()
     chart.plot.draw()
 
     # chart.plot.pan chart.plot.pointOffset

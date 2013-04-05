@@ -70,12 +70,12 @@ startDrag = (value) -> (downEvent) =>
         xOffset = moveEvent.pageX - xCenter
         xCenter = moveEvent.pageX
 
-        delta = if xOffset >= 2 then 1 else if xOffset <= -2 then -1 else 0
+        scr.delta = if xOffset >= 2 then 1 else if xOffset <= -2 then -1 else 0
 
-        if delta != 0
+        if scr.delta != 0
             range = scr.mark.find()
-            
-            scr.num += delta
+
+            scr.num += scr.delta
 
             numString = scr.num.toFixed scr.fixedDigits
             Cr.editor.replaceRange numString, range.from, range.to
