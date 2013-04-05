@@ -57,10 +57,8 @@ $ ->
     Cr.markAsFree = markAsFree = (from, to) ->
         editor.markText from, to,
             className: 'free-number'
-            # FIXME hack so that free marker stays in place
-            # when we replace the whole thing
-            inclusiveLeft: true
-            inclusiveRight: true
+            inclusiveLeft: false
+            inclusiveRight: false
             atomic: true
 
     oldCursor = null
@@ -116,9 +114,7 @@ $ ->
                 line: line
                 ch: text.length + ' = '.length + freeString.length
 
-            # FIXME hack so you can touch end of line
-            editor.replaceRange ' = ' + freeString + ' ', from, from
-
+            editor.replaceRange ' = ' + freeString, from, from
             markAsFree from, to
 
             reparseLine line
@@ -126,9 +122,19 @@ $ ->
         else if parsed?.constructor == Cr.Equation
             try
                 [freeValue, solution] = parsed.solve()
+
+                # TODO come up with a nicer way
+                # to preserve marks when replaceRange
+                mark = (span.marker for span in getFreeMarkSpans line)[0]
+                mark.inclusiveLeft = true
+                mark.inclusiveRight = true
+
                 editor.replaceRange (solution.toFixed 2),
                     (Cr.valueFrom freeValue),
                     (Cr.valueTo freeValue)
+
+                mark.inclusiveLeft = false
+                mark.inclusiveRight = false
 
                 reparseLine line
 
