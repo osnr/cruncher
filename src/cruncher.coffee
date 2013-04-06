@@ -1,12 +1,26 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
 $ ->
+    onEquals = (cm) ->
+        cursor = cm.getCursor 'end'
+
+        cm.replaceRange '=', {
+            line: cursor.line
+            ch: cursor.ch
+        }, {
+            line: cursor.line
+            ch: (cm.getLine cursor.line).length
+        }
+
     Cr.editor = editor = null
     Cr.editor = editor = CodeMirror.fromTextArea $('#code')[0],
         lineNumbers: true
         lineWrapping: true,
         gutters: ['lineState']
         theme: 'cruncher'
+        extraKeys:
+            '=': onEquals
+
     # There are two extra properties we put on each line handle in CodeMirror.
     #     evaluating: is this line being evaluated?
     #     parsed: parse / evaluation object for the line
