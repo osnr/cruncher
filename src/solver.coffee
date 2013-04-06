@@ -4,9 +4,12 @@ dx = 0.00001
 derivative = (f) ->
     (x) -> ((f (x + dx)) - (f x)) / dx
 
-Cr.newtonsMethod = newtonsMethod = (f, x, fp) ->
+Cr.newtonsMethod = newtonsMethod = (f, x, fp, numIters) ->
     fp = fp ? derivative f
+    numIters = numIters ? 0
     if -dx < (f x) < dx
         x
+    else if numIters > 100
+        NaN
     else
-        newtonsMethod f, x - (f x) / (fp x), fp
+        newtonsMethod f, x - (f x) / (fp x), fp, numIters + 1

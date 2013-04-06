@@ -91,6 +91,15 @@
     border-bottom: 1px dotted #C9534F;
     width: auto;
 }
+.parse-error-line.cm-equals:after {
+    content: '?';
+
+    position: relative;
+    font-size: 10px;
+    left: -8px;
+    top: -7px;
+    margin-right: -4px;
+}
 
 .over-determined-icon {
     color: #003056;
@@ -101,6 +110,15 @@
 
 .under-determined-icon {
     color: #630D0A;
+}
+.under-determined-line.cm-equals:after {
+    content: '?';
+
+    position: relative;
+    font-size: 10px;
+    left: -8px;
+    top: -7px;
+    margin-right: -4px;
 }
 
 #overlay {

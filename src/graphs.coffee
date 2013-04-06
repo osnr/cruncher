@@ -17,9 +17,12 @@ graphForLineHandle = (line, handle) ->
 
     g
 
+width = 10
+delta = 0.05
 getData = (chart, indepValue) ->
-    [ ([Cr.scr.num + (dx * 0.05),
-        chart.markF Cr.scr.num + (dx * 0.05), indepValue] for dx in [-200..200]) ]
+    [ ([Cr.scr.num + (dx * delta),
+        chart.markF Cr.scr.num + (dx * delta), indepValue] \
+        for dx in [(-(width + 2) / delta)..((width + 2) / delta)]) ]
 
 addChart = (mark) ->
     range = mark.find()
@@ -52,7 +55,6 @@ addChart = (mark) ->
     else
         chart.markF = (x, indepValue) ->
             x
-    window.markF = chart.markF
 
     chart.$chart = ($ '<div class="chart"></div>')
         .offset
@@ -75,10 +77,22 @@ addChart = (mark) ->
                     from: markNum
                     to: markNum
             }]
-        zoom:
-            interactive: true
-        pan:
-            interactive: true
+        xaxis:
+            min: indepValue.num - width
+            max: indepValue.num + width
+        yaxis:
+            min: markNum - width
+            max: markNum + width
+
+setAxisBounds = (chart, curY) ->
+    axes = chart.plot.getAxes()
+    xaxis = axes.xaxis
+    xaxis.options.min = xaxis.min + Cr.scr.delta
+    xaxis.options.max = xaxis.max + Cr.scr.delta
+
+    yaxis = axes.yaxis
+    yaxis.options.min = curY - width
+    yaxis.options.max = curY + width
 
 updateChart = (mark) ->
     range = mark.find()
@@ -105,36 +119,31 @@ updateChart = (mark) ->
             from: markNum
             to: markNum
 
-    axes = chart.plot.getAxes()
-    xaxis = axes.xaxis
-    xaxis.options.min = xaxis.min + Cr.scr.delta
-    xaxis.options.max = xaxis.max + Cr.scr.delta
-
-    yaxis = axes.yaxis
-    yaxis.options.min = chart.markF xaxis.min + Cr.scr.delta, indepValue
-    yaxis.options.max = chart.markF xaxis.max + Cr.scr.delta, indepValue
+    setAxisBounds chart, markNum
 
     chart.plot.setupGrid()
     chart.plot.draw()
 
-    # chart.plot.pan chart.plot.pointOffset
-    #     x: data[0][0][0]
-    #     y: data[0][0][1]
+shiftCharts = ->
+    Cr.editor.eachLine (handle) ->
+        return unless handle.graph?
+        # for mark, chart of handle.graph.charts
+            #chart.$chart.offset
+            #    left: 100
 
 deleteChart = (mark) ->
     delete g.charts[mark]
 
 Cr.addGraph = (marks) ->
     addChart mark for mark in marks
+    shiftCharts()
 
 Cr.updateGraph = (marks) ->
     updateChart mark for mark in marks
 
-numRange = (num) ->
-    (num + i * 0.01 for i in [-50..50])
-
-Cr.removeGraph = (line) ->
-    return
-    graphs[line].$wrapper.slideUp 100, ->
-        graphs[line].widget.clear()
-        graphs[line] = null
+Cr.removeGraph = ->
+    Cr.editor.eachLine (handle) ->
+        handle.graph?.$wrapper.slideUp 100, ->
+            handle.graph.widget.clear()
+            delete handle.graph
+        false

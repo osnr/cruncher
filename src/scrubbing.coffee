@@ -61,7 +61,7 @@ startDrag = (value) -> (downEvent) =>
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
 
-    graphMarks = [scr.mark].concat Cr.depsOnValue value
+    graphMarks = Cr.depsOnValue value
     Cr.addGraph graphMarks
 
     xCenter = downEvent.pageX
@@ -88,7 +88,7 @@ startDrag = (value) -> (downEvent) =>
         ($ document).off('mousemove.scrub')
             .off 'mouseup.scrub'
 
-        Cr.removeGraph value.line
+        Cr.removeGraph()
 
         # TODO remove this selection-restoring hack
         setTimeout (->

@@ -35,8 +35,6 @@ lineStates =
                 'I don\'t know how to solve it.'
         lineClass: 'under-determined-line'
 
-stateNameLines = []
-
 # assumption: only one line state at a time
 Cr.setLineState = (line, stateName) ->
     state = lineStates[stateName]
@@ -47,22 +45,45 @@ Cr.setLineState = (line, stateName) ->
         { line: line, ch: (Cr.editor.getLine line).length },
         { className: state.lineClass }
 
-    stateNameLines[line] = stateName
+    (Cr.editor.getLineHandle line).state = stateName
 
 Cr.unsetLineState = (line, stateName) ->
-    return unless stateNameLines[line] == stateName
+    handle = Cr.editor.getLineHandle line
+    return unless handle.state? and handle.state == stateName
 
     state = lineStates[stateName]
 
     Cr.editor.setGutterMarker line, 'lineState', null
 
-    handle = Cr.editor.getLineHandle line
     if handle.markedSpans?
         for span in handle.markedSpans
             if span.marker.className == state.lineClass
                 span.marker.clear()
 
-    stateNameLines[line] = null
+    delete handle.state
 
 Cr.getLineState = (line) ->
-    stateNameLines[line]
+    (Cr.editor.getLineHandle line).state
+
+Cr.updateSign = (line, handle) ->
+    handle.equalsMark?.clear()
+
+    idx = handle.text.indexOf '='
+    return unless idx > -1
+
+    leftNum = handle.parsed.left.num
+    rightNum = handle.parsed.right.num
+
+    if leftNum < rightNum
+        replacedWith = ($ '<span>&lt;</span>')[0]
+    else if leftNum > rightNum
+        replacedWith = ($ '<span>&gt;</span>')[0]
+    else return
+
+    handle.equalsMark = Cr.editor.markText {
+        line: line
+        ch: idx
+    }, {
+        line: line
+        ch: idx + 1
+    }, replacedWith: replacedWith

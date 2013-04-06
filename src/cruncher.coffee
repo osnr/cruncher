@@ -149,11 +149,13 @@ $ ->
                 mark.inclusiveLeft = false
                 mark.inclusiveRight = false
 
+                handle.equalsMark?.clear()
                 reparseLine line
 
             catch e
                 if e instanceof Cr.OverDeterminedException
                     Cr.setLineState line, 'overDetermined'
+                    Cr.updateSign line, handle
                 else if e instanceof Cr.UnderDeterminedException
                     Cr.setLineState line, 'underDetermined'
 
