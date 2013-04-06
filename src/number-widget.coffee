@@ -27,10 +27,11 @@ class Cr.NumberWidget
         @$number = $ '.hovering-number'
         @$number.mouseleave @endHover
 
+        offset = @$number.offset()
         @$numberWidget #.width(($ this).width())
-            .offset (index, coords) ->
-                top: coords.top
-                left: coords.left
+            .offset
+                top: offset.top + @$number.height()
+                left: offset.left
             .mouseenter =>
                 @$number.off 'mouseleave'
 

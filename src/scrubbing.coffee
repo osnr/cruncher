@@ -70,7 +70,7 @@ startDrag = (value) -> (downEvent) =>
         xOffset = moveEvent.pageX - xCenter
         xCenter = moveEvent.pageX
 
-        scr.delta = if xOffset >= 2 then 1 else if xOffset <= -2 then -1 else 0
+        scr.delta = xOffset / 5
 
         if scr.delta != 0
             range = scr.mark.find()
