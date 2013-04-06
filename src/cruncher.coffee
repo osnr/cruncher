@@ -23,7 +23,7 @@ $ ->
 
     # There are two extra properties we put on each line handle in CodeMirror.
     #     evaluating: is this line being evaluated?
-    #     parsed: parse / evaluation object for the line
+    #     parsed: parse / evaluation object for the line (Equation or Expression)
     # They're attached to the handle so that they follow the line around if it moves.
 
     # generate unique ids for text markers
@@ -83,7 +83,6 @@ $ ->
         # 
         # e.g. {2} |+ 3 = 5 -> {20} |+ 3 = 5
         #      we shift the cursor right 1 character
-
         if changeObj.to.line == oldCursor.line and oldCursor.ch > changeObj.from.ch
             cursorOffset = changeObj.text[0].length - (changeObj.to.ch - changeObj.from.ch)
             newCursor =

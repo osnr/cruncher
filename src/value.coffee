@@ -32,11 +32,13 @@ class Cr.Equation
                         (x) -> side.num
 
             try
-                solution = (numeric.uncmin ((x) ->
-                    (Math.pow (leftF x[0]) - (rightF x[0]), 2)), [1]).solution[0]
+                solution = Cr.newtonsMethod ((x) ->
+                        (leftF x) - (rightF x)),
+                        1
                 return [freeValues[0], solution]
 
             catch e
+                console.log e.stack
                 throw new Cr.SolveException
 
         else

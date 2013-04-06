@@ -19,7 +19,7 @@ graphForLineHandle = (line, handle) ->
 
 getData = (chart, indepValue) ->
     [ ([Cr.scr.num + (dx * 0.05),
-        chart.markF Cr.scr.num + (dx * 0.05), indepValue] for dx in [-500..500]) ]
+        chart.markF Cr.scr.num + (dx * 0.05), indepValue] for dx in [-200..200]) ]
 
 addChart = (mark) ->
     range = mark.find()
@@ -28,7 +28,6 @@ addChart = (mark) ->
     handle = Cr.editor.getLineHandle line
     g = graphForLineHandle line, handle
 
-    console.log line, g.charts
     # marks are keys thanks to the toString() in cruncher.coffee
     return if g.charts[mark]?
 
@@ -80,16 +79,6 @@ addChart = (mark) ->
             interactive: true
         pan:
             interactive: true
- #,
-#        yaxis:
-#            max: 1
-
-    # g.charts[mark] = g.paper.linechart x, 0, 100, 80,
-    #     (Cr.scr.num + (dx * 0.05) for dx in [-100..100])
-    #     ((markF Cr.scr.num + (dx * 0.05)) for dx in [-100..100]),
-    #     shade: true
-    #     axis: '0 0 1 1'
-    #     axisxstep: 3
 
 updateChart = (mark) ->
     range = mark.find()
@@ -120,12 +109,10 @@ updateChart = (mark) ->
     xaxis = axes.xaxis
     xaxis.options.min = xaxis.min + Cr.scr.delta
     xaxis.options.max = xaxis.max + Cr.scr.delta
-    console.log 'xaxis', xaxis.options.min, xaxis.options.max
 
     yaxis = axes.yaxis
     yaxis.options.min = chart.markF xaxis.min + Cr.scr.delta, indepValue
     yaxis.options.max = chart.markF xaxis.max + Cr.scr.delta, indepValue
-    console.log 'yaxis', yaxis.options.min, yaxis.options.max
 
     chart.plot.setupGrid()
     chart.plot.draw()
