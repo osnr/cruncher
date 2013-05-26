@@ -17,7 +17,7 @@
 "("                      return 'PAREN_OPEN'
 ")"                      return 'PAREN_CLOSE'
 <<EOF>>                  return 'EOF'
-[^\s]+                   /* skip text */
+[^\s\(\)]+                   /* skip text */
 
 /lex
 
