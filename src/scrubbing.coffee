@@ -41,10 +41,10 @@ startDrag = (value) -> (downEvent) =>
     ($ document).off('mousemove.scrub').off 'mouseup.scrub'
     scr?.mark?.clear()
     ($ '.number-widget').remove()
-    Cr.editor.eachLine (handle) ->
-        return unless handle.graph?
-        handle.graph.widget.clear()
-        delete handle.graph
+    # Cr.editor.eachLine (handle) ->
+    #    return unless handle.graph?
+    #    handle.graph.widget.clear()
+    #    delete handle.graph
 
     origin = Cr.editor.coordsChar
         left: downEvent.pageX
@@ -61,8 +61,8 @@ startDrag = (value) -> (downEvent) =>
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
 
-    graphMarks = Cr.depsOnValue value
-    Cr.addGraph graphMarks
+    # graphMarks = Cr.depsOnValue value
+    # Cr.addGraph graphMarks
 
     xCenter = downEvent.pageX
 
@@ -80,7 +80,7 @@ startDrag = (value) -> (downEvent) =>
             numString = scr.num.toFixed scr.fixedDigits
             Cr.editor.replaceRange numString, range.from, range.to
 
-            Cr.updateGraph graphMarks
+            # Cr.updateGraph graphMarks
 
     onDragUp = =>
         scr.mark.clear()
@@ -88,7 +88,7 @@ startDrag = (value) -> (downEvent) =>
         ($ document).off('mousemove.scrub')
             .off 'mouseup.scrub'
 
-        Cr.removeGraph()
+        # Cr.removeGraph()
 
         # TODO remove this selection-restoring hack
         setTimeout (->
