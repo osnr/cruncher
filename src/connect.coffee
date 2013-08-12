@@ -68,7 +68,7 @@ connect = (cid, value) ->
     mark
 
 getMarkCid = (mark) -> # hack
-    className = mark.getOptions()['className']
+    className = mark.className
     if className.match /^connected-number-cid-\d+/
         parseFloat className.substring ((className.lastIndexOf '-') + 1)
     else
@@ -104,7 +104,7 @@ findMark = (from, to) ->
         Cr.editor.findMarksAt to
 
     for mark in marks
-        if mark.getOptions()['className'].match /^connected-number-cid-\d+/
+        if mark.className.match /^connected-number-cid-\d+/
             return mark
 
 Cr.getValueCid = getValueCid = (value) ->
