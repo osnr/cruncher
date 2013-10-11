@@ -68,6 +68,15 @@ $ ->
             handle.parsed = null
             Cr.setLineState line, 'parseError'
 
+            i = 0
+            firstToken = null
+            while not firstToken
+                firstToken = Cr.editor.getTokenTypeAt { line: line, ch: i }
+                i += 1
+            if firstToken == 'equals'
+                # wipe out the line, they probably deleted the entire left half
+                editor.setLine line, ''
+
     Cr.markAsFree = markAsFree = (from, to) ->
         editor.markText from, to,
             className: 'free-number'
@@ -173,7 +182,7 @@ $ ->
 
         # executes on user or cruncher change to text
         # (except during evalLine)
-        for line in [changeObj.from.line..changeObj.to.line]
+        for line in [changeObj.from.line..changeObj.to.line + changeObj.text.length - 1]
             handle = editor.getLineHandle line
             continue unless handle
 
