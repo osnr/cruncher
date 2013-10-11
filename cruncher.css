@@ -29,6 +29,9 @@
     cursor: col-resize;
     z-index: 6;
 }
+.cm-s-cruncher .cm-number:not(.free-number) {
+    border-bottom: 1px dashed #003056;
+}
 .cm-s-cruncher .hovering-number {
     color: #00A1D9;
 }
@@ -91,7 +94,8 @@
     color: #C9534F;
 }
 .parse-error-line {
-    border-bottom: 1px dotted #C9534F;
+    background-color: #C9534F;
+    opacity: 0.1;
     width: auto;
 }
 .parse-error-line.cm-equals:after {

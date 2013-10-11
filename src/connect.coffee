@@ -79,7 +79,6 @@ disconnect = (cid, value) ->
 
     cidMarks = (mark for mark in Cr.editor.getAllMarks() when mark.cid == cid)
     if cidMarks.length == 1
-        delete Cr.cids[cid]
         disconnectMark cid, cidMarks[0]
 
 disconnectPos = (cid, pos) ->
@@ -90,20 +89,17 @@ disconnectMark = (cid, mark) ->
     if mark.cid == cid
         mark.clear()
 
-Cr.cids = {}
-Cr.newCid = do ->
-    maxCid = 0
-    ->
-        Cr.cids[maxCid] = true
-        maxCid++
+Cr.newCid = ->
+    cid = Math.floor(Math.random()*16777215).toString(16)
+    ($ 'head').append '<style>.connected-number-cid-'+cid+' { background-color: #' + cid + '; </style>'
+    cid
 
 findMark = (from, to) ->
     marks = (Cr.editor.findMarksAt from).concat \
         Cr.editor.findMarksAt to
 
-    for mark in marks
-        if mark.className.match /^connected-number-cid-\d+/
-            return mark
+    for mark in marks when mark.cid?
+        return mark
 
 Cr.getValueCid = getValueCid = (value) ->
     mark = findMark (Cr.valueFrom value), (Cr.valueTo value)

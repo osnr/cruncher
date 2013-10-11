@@ -41,9 +41,7 @@ Cr.setLineState = (line, stateName) ->
 
     Cr.editor.setGutterMarker line, 'lineState',
         state.gutterMarker()
-    Cr.editor.markText { line: line, ch: 0 },
-        { line: line, ch: (Cr.editor.getLine line).length },
-        { className: state.lineClass }
+    Cr.editor.addLineClass line, 'background', state.lineClass
 
     (Cr.editor.getLineHandle line).state = stateName
 
@@ -55,10 +53,7 @@ Cr.unsetLineState = (line, stateName) ->
 
     Cr.editor.setGutterMarker line, 'lineState', null
 
-    if handle.markedSpans?
-        for span in handle.markedSpans
-            if span.marker.className == state.lineClass
-                span.marker.clear()
+    Cr.editor.removeLineClass line, 'background', state.lineClass
 
     delete handle.state
 

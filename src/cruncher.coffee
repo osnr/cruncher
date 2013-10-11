@@ -82,6 +82,7 @@ $ ->
             className: 'free-number'
             inclusiveLeft: false
             inclusiveRight: false
+            atomic: true
 
     oldCursor = null
     solveChange = (instance, changeObj) ->
@@ -135,7 +136,7 @@ $ ->
                 line: line
                 ch: text.length + ' = '.length + freeString.length
 
-            editor.replaceRange ' = ' + freeString, from, from
+            editor.replaceRange ' = ' + freeString, from
             markAsFree from, to
 
             reparseLine line
@@ -143,10 +144,13 @@ $ ->
         else if parsed?.constructor == Cr.Equation
             try
                 [freeValue, solution] = parsed.solve()
-
+                
                 # TODO come up with a nicer way
                 # to preserve marks when replaceRange
                 mark = (span.marker for span in getFreeMarkSpans line)[0]
+
+                oldCursor = editor.getCursor()
+
                 mark.inclusiveLeft = true
                 mark.inclusiveRight = true
 
@@ -156,6 +160,8 @@ $ ->
 
                 mark.inclusiveLeft = false
                 mark.inclusiveRight = false
+
+                editor.setCursor oldCursor
 
                 handle.equalsMark?.clear()
                 reparseLine line
@@ -169,7 +175,7 @@ $ ->
 
         handle.evaluating = false
 
-    onChange = (instance, changeObj) ->
+    editor.on 'change', (instance, changeObj) ->
         if not changeObj.origin
             # automatic origin -- merge with last change
             history = editor.doc.history
@@ -201,12 +207,6 @@ $ ->
                     value.line = line
 
         Cr.updateConnectionsForChange changeObj
-
-    # why don't we use beforeChange so we can merge the constrain
-    # w/ its cause into one undo-history event?
-    # A: because we need the new mark ranges which we only get
-    #    post-edit
-    editor.on 'change', onChange
 
     Cr.nearestValue = nearestValue = (pos) ->
         # find nearest number (Value) to pos = { line, ch }

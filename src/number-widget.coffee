@@ -9,13 +9,6 @@ class Cr.NumberWidget
             @mark = (mark for mark in Cr.editor.findMarksAt \
                 Cr.valueFrom value when mark.className == 'free-number')[0]
 
-        @cid = Cr.getValueCid @value
-        if @cid?
-            @$numberWidget.find('#connect i')
-                .addClass('icon-circle')
-                .removeClass 'icon-circle-blank'
-        else
-            @cid = Cr.newCid()
     show: ->
         ($ '.number-widget').remove()
         
@@ -54,7 +47,15 @@ class Cr.NumberWidget
                 fromCoords = Cr.editor.charCoords Cr.valueFrom @value
                 toCoords = Cr.editor.charCoords Cr.valueTo @value
 
-                Cr.startConnect @cid,
+                cid = Cr.getValueCid @value
+                if cid?
+                    @$numberWidget.find('#connect i')
+                        .addClass('icon-circle')
+                        .removeClass 'icon-circle-blank'
+                else
+                    cid = Cr.newCid()
+
+                Cr.startConnect cid,
                     @value,
                     (toCoords.left + fromCoords.left) / 2,
                     (fromCoords.bottom + fromCoords.top) / 2
