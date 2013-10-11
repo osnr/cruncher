@@ -11,6 +11,9 @@
     overflow-y: hidden;
     overflow-x: auto;
 }
+.CodeMirror-sizer {
+    margin-bottom: 20px;
+}
 .CodeMirror-linenumber {
     min-width: 30px;
 }

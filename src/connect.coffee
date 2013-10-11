@@ -54,17 +54,14 @@ Cr.startConnect = (cid, value, ox, oy) ->
         .on 'mouseup.connect', onUpConnect
         # .css 'cursor', 'pointer'
 
-Cr.connections = connections = {}
-
 connect = (cid, value) ->
-    connections[cid] = connections[cid] ? []
-    
     mark = Cr.editor.markText (Cr.valueFrom value),
         (Cr.valueTo value),
         className: 'connected-number-cid-' + cid
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
-    connections[cid].push mark
+    mark.cid = cid
+
     mark
 
 getMarkCid = (mark) -> # hack
@@ -75,29 +72,30 @@ getMarkCid = (mark) -> # hack
         null
 
 disconnect = (cid, value) ->
+    # only triggers with 'real' disconnect,
+    # not mark disconnect (which happens during
+    # connection-building, a special case)
     disconnectPos cid, Cr.valueFrom value
 
-    if connections[cid].length == 1
-        # only triggers with 'real' disconnect,
-        # not mark disconnect (which happens during
-        # connection-building, a special case)
-        disconnectMark cid, connections[cid][0]
+    cidMarks = (mark for mark in Cr.editor.getAllMarks() when mark.cid == cid)
+    if cidMarks.length == 1
+        delete Cr.cids[cid]
+        disconnectMark cid, cidMarks[0]
 
 disconnectPos = (cid, pos) ->
     marks = Cr.editor.findMarksAt pos
     disconnectMark cid, mark for mark in marks
 
 disconnectMark = (cid, mark) ->
-    connection = connections[cid]
-
-    if mark in connection
+    if mark.cid == cid
         mark.clear()
-        i = connection.indexOf mark
-        connection.splice i, 1 unless i == -1
 
-Cr.newCid = ->
-    for i in [0..100]
-        return i unless connections[i]?.length > 0
+Cr.cids = {}
+Cr.newCid = do ->
+    maxCid = 0
+    ->
+        Cr.cids[maxCid] = true
+        maxCid++
 
 findMark = (from, to) ->
     marks = (Cr.editor.findMarksAt from).concat \
@@ -110,22 +108,20 @@ findMark = (from, to) ->
 Cr.getValueCid = getValueCid = (value) ->
     mark = findMark (Cr.valueFrom value), (Cr.valueTo value)
     if mark?
-        getMarkCid mark
+        mark.cid
     else
         null
 
 Cr.updateConnectionsForChange = (changeObj) ->
     mark = findMark changeObj.from, changeObj.to
     if mark?
-        markCid = getMarkCid mark
-
         range = mark.find()
-        updateConnections markCid, (Cr.editor.getRange range.from, range.to)
+        updateConnections mark.cid, (Cr.editor.getRange range.from, range.to)
 
 updateConnections = (cid, newString) ->
-    for mark in connections[cid]
+    for mark in Cr.editor.getAllMarks() when mark.cid == cid
         range = mark.find()
-        if (Cr.editor.getRange range.from, range.to) != newString
+        if range? and (Cr.editor.getRange range.from, range.to) != newString
             Cr.editor.replaceRange newString, range.from, range.to
 
 Cr.depsOnValue = depsOnValue = (value, sameConnection) ->
@@ -149,7 +145,7 @@ Cr.depsOnValue = depsOnValue = (value, sameConnection) ->
     mark = findMark (Cr.valueFrom value), (Cr.valueTo value)
     cid = getMarkCid mark if mark?
     if cid?
-        for cMark in connections[cid]
+        for cMark in Cr.editor.getAllMarks() when cMark.cid == cid
             cValue = Cr.nearestValue cMark.find().from
             if cValue != value
                 deps.push.apply deps, (depsOnValue cValue, true)

@@ -73,7 +73,6 @@ $ ->
             className: 'free-number'
             inclusiveLeft: false
             inclusiveRight: false
-            atomic: true
 
     oldCursor = null
     solveChange = (instance, changeObj) ->
@@ -162,6 +161,16 @@ $ ->
         handle.evaluating = false
 
     onChange = (instance, changeObj) ->
+        if not changeObj.origin
+            # automatic origin -- merge with last change
+            history = editor.doc.history
+            lastChange = history.done.pop()
+            prevChange = history.done.pop()
+            $.merge prevChange.changes, lastChange.changes
+            prevChange.headAfter = lastChange.headAfter
+            prevChange.anchorAfter = lastChange.anchorAfter
+            history.done.push prevChange
+
         # executes on user or cruncher change to text
         # (except during evalLine)
         for line in [changeObj.from.line..changeObj.to.line]
@@ -184,6 +193,10 @@ $ ->
 
         Cr.updateConnectionsForChange changeObj
 
+    # why don't we use beforeChange so we can merge the constrain
+    # w/ its cause into one undo-history event?
+    # A: because we need the new mark ranges which we only get
+    #    post-edit
     editor.on 'change', onChange
 
     Cr.nearestValue = nearestValue = (pos) ->
