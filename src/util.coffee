@@ -44,4 +44,4 @@ Cr.valueTo = (value) ->
     { line: value.line, ch: value.end }
 
 Cr.valueString = (value) ->
-    editor.getRange (Cr.valueFrom value), (Cr.valueTo value)
+    Cr.editor.getRange (Cr.valueFrom value), (Cr.valueTo value)
