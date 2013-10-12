@@ -16,16 +16,18 @@ lineStates =
     parseError:
         gutterMarker:
             makeGutterMarker 'parse-error-icon',
-                'icon-remove-circle',
+                'icon-question',
                 'I can\'t understand this line.'
-        lineClass: 'parse-error-line'
+        bgClass: 'parse-error-line'
+        wrapClass: 'parse-error'
 
     overDetermined:
         gutterMarker:
             makeGutterMarker 'over-determined-icon',
                 'icon-lock',
                 'This line doesn\'t have enough <span class="over-determined-free">free numbers</span> for me to change.'
-        lineClass: 'over-determined-line'
+        bgClass: 'over-determined-line'
+        wrapClass: 'over-determined'
 
     underDetermined:
         gutterMarker:
@@ -33,7 +35,8 @@ lineStates =
                 'icon-unlock',
                 'This line has too many <span class="over-determined-free">free numbers</span>!' +
                 'I don\'t know how to solve it.'
-        lineClass: 'under-determined-line'
+        bgClass: 'under-determined-line'
+        wrapClass: 'under-determined'
 
 # assumption: only one line state at a time
 Cr.setLineState = (line, stateName) ->
@@ -41,7 +44,8 @@ Cr.setLineState = (line, stateName) ->
 
     Cr.editor.setGutterMarker line, 'lineState',
         state.gutterMarker()
-    Cr.editor.addLineClass line, 'background', state.lineClass
+    Cr.editor.addLineClass line, 'background', state.bgClass
+    Cr.editor.addLineClass line, 'wrap', state.wrapClass
 
     (Cr.editor.getLineHandle line).state = stateName
 
@@ -53,7 +57,8 @@ Cr.unsetLineState = (line, stateName) ->
 
     Cr.editor.setGutterMarker line, 'lineState', null
 
-    Cr.editor.removeLineClass line, 'background', state.lineClass
+    Cr.editor.removeLineClass line, 'background', state.bgClass
+    Cr.editor.removeLineClass line, 'wrap', state.wrapClass
 
     delete handle.state
 

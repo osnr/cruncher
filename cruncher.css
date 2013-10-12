@@ -30,7 +30,11 @@
     z-index: 6;
 }
 .cm-s-cruncher .cm-number:not(.free-number) {
-    border-bottom: 1px dashed #003056;
+    border-bottom: 1px dotted rgba(0, 48, 86, 0.5);
+}
+.cm-s-cruncher .parse-error .cm-number {
+    border-bottom: 0;
+    cursor: auto;
 }
 .cm-s-cruncher .hovering-number {
     color: #00A1D9;
@@ -40,7 +44,7 @@
 }
 .cm-s-cruncher .free-number {
     color: #630D0A;
-    cursor: not-allowed;
+    cursor: not-allowed !important;
 }
 .cm-s-cruncher .free-number.hovering-number {
     color: #630D0A;

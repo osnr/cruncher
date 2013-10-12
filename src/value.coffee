@@ -96,7 +96,7 @@ class Cr.Expression
         @
 
     numString: -> # error if free number expression
-        @num.toFixed 2
+        @num.toString()
 
 class Cr.Value
     constructor: (@num) ->
@@ -113,4 +113,4 @@ class Cr.Value
         @
 
     numString: -> # error if free number
-        @num.toFixed 2
+        @num.toString()

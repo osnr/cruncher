@@ -18,6 +18,7 @@ $ ->
         lineWrapping: true,
         gutters: ['lineState']
         theme: 'cruncher'
+        autofocus: true
         extraKeys:
             '=': onEquals
 
@@ -64,7 +65,7 @@ $ ->
             Cr.unsetLineState line, 'parseError'
             
         catch e
-            console.log 'parse error', line, textToParse
+            console.log 'parse error', e, line, textToParse
             handle.parsed = null
             Cr.setLineState line, 'parseError'
 
@@ -144,7 +145,7 @@ $ ->
         else if parsed?.constructor == Cr.Equation
             try
                 [freeValue, solution] = parsed.solve()
-                
+
                 # TODO come up with a nicer way
                 # to preserve marks when replaceRange
                 mark = (span.marker for span in getFreeMarkSpans line)[0]
@@ -154,7 +155,11 @@ $ ->
                 mark.inclusiveLeft = true
                 mark.inclusiveRight = true
 
-                editor.replaceRange (solution.toFixed 2),
+                numbersOnLine =
+                    (text.substring(0, freeValue.start) + text.substring(freeValue.end))
+                    .match(/[0-9\.]+/g)
+
+                editor.replaceRange (Cr.roundSig numbersOnLine, solution),
                     (Cr.valueFrom freeValue),
                     (Cr.valueTo freeValue)
 
@@ -207,30 +212,6 @@ $ ->
                     value.line = line
 
         Cr.updateConnectionsForChange changeObj
-
-    Cr.nearestValue = nearestValue = (pos) ->
-        # find nearest number (Value) to pos = { line, ch }
-        # used for identifying hover/drag target
-
-        parsed = (editor.getLineHandle pos.line).parsed
-        return unless parsed?
-
-        nearest = null
-        for value in parsed.values
-            if value.start <= pos.ch <= value.end
-                nearest = value
-                break
-
-        return nearest
-
-    Cr.valueFrom = (value) ->
-        { line: value.line, ch: value.start }
-
-    Cr.valueTo = (value) ->
-        { line: value.line, ch: value.end }
-    
-    Cr.valueString = (value) ->
-        editor.getRange (Cr.valueFrom value), (Cr.valueTo value)
 
     ($ document).on 'mouseenter', '.cm-number', Cr.startHover
 
