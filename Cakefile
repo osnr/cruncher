@@ -1,16 +1,66 @@
-spawn = (require 'child_process').spawn
+{exec} = require 'child_process'
+fs = require 'fs'
+path = require 'path'
 
-to_stdio = (emitter) ->
-    emitter.stdout.on 'data', (data) -> process.stdout.write data
-    emitter.stderr.on 'data', (data) -> process.stderr.write data
-    emitter
+lastChange = {}
 
-task 'build:watch', 'Build and then watch .coffee files', (options) ->
-    to_stdio spawn 'coffee', ['--watch', '--compile', '--output', 'bin', 'src']
+coffee = ('src/coffee/' + s for s in \
+    ['connect.coffee', 'cruncher.coffee', 'docs.coffee', 'graphs.coffee',
+     'highlight.coffee', 'line-state.coffee', 'number-widget.coffee',
+     'scrubbing.coffee', 'solver.coffee', 'util.coffee', 'value.coffee'])
+jison = ['src/jison/parser.jison']
+less = ['src/less/cruncher.less']
 
-task 'build:parser', 'Build the math parser', (options) ->
-    to_stdio spawn 'jison', ['src/parser.jison', '-o', 'bin/parser.js']
+coffeeOut = 'bin/js'
+jisonOut = 'bin/js'
+lessOut = 'bin/css'
 
-task 'build', 'Build all', (options) ->
-    invoke 'build:parser'
-    to_stdio spawn 'coffee', ['--compile', '--output', 'bin', 'src']
+compileCoffee = (file) ->
+    exec "coffee -o #{coffeeOut} -c #{file}", (err, stdout, stderr) ->
+        return console.error err if err
+        console.log "Compiled #{file}"
+
+compileJison = (file) ->
+    exec "jison -o #{coffeeOut}/#{path.basename(file, '.js')} #{file}", (err, stdout, stderr) ->
+        return console.error err if err
+        console.log "Compiled #{file}"
+
+compileLess = (file) ->
+    exec "lessc #{file} #{lessOut}/#{path.basename(file, '.css')}", (err, stdout, stderr) ->
+        return console.error err if err
+        console.log "Compiled #{file}"
+ 
+watchFile = (file, fn) ->
+    try
+        fs.watch file, (event, filename) ->
+            return if event isnt 'change'
+            # ignore repeated event misfires
+            fn file if Date.now() - lastChange[file] > 1000
+            lastChange[file] = Date.now()
+    catch e
+        console.log "Error watching #{file}"
+ 
+watchFiles = (files, fn) ->
+    for file in files
+        lastChange[file] = 0
+        watchFile file, fn
+        console.log "Watching #{file}"
+ 
+task 'build', 'Compile *.coffee, *.jison and *.less', ->
+    compileCoffee(f) for f in coffee
+    compileJison(f) for f in jison
+    compileLess(f) for f in less
+ 
+task 'watch', 'Compile + watch *.coffee, *.jison and *.less', ->
+    watchFiles coffee, compileCoffee
+    watchFiles jison, compileJison
+    watchFiles less, compileLess
+ 
+task 'watch:js', 'Compile + watch *.coffee only', ->
+    watchFiles coffee, compileCoffee
+
+task 'watch:jison', 'Compile + watch *.jison only', ->
+    watchFiles jison, compileJison
+
+task 'watch:css', 'Compile + watch *.less only', ->
+    watchFiles less, compileLess

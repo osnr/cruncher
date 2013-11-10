@@ -1,0 +1,212 @@
+#tools {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+
+    z-index: 7;
+}
+
+#tools a {
+    opacity: 0.5;
+}
+
+#tools a:hover {
+    opacity: 1;
+}
+
+#file-name {
+    border: 0 none;
+    outline: 0 none;
+    box-shadow: none;
+    text-align: right;
+}
+
+#file-chooser {
+    display: none;
+}
+
+/* CodeMirror theme */
+.cm-s-cruncher.CodeMirror {
+    height: 100%;
+    width: 100%;
+    font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
+    font-size: 14px;
+    line-height: 28px;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+.cm-s-cruncher .CodeMirror-scroll {
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+.CodeMirror-sizer {
+    margin-bottom: 20px;
+}
+.CodeMirror-linenumber {
+    min-width: 30px;
+}
+.cm-s-cruncher .CodeMirror-cursor {
+    height: 18px;
+}
+.cm-s-cruncher .CodeMirror-lines pre {
+    color: gray;
+}
+
+.cm-s-cruncher .cm-number {
+    color: #003056;
+    cursor: col-resize;
+    z-index: 6;
+}
+.cm-s-cruncher .cm-number:not(.free-number) {
+    border-bottom: 1px dotted rgba(0, 48, 86, 0.5);
+}
+.cm-s-cruncher .parse-error .cm-number {
+    border-bottom: 0;
+    cursor: auto;
+}
+.cm-s-cruncher .hovering-number {
+    color: #00A1D9;
+}
+.cm-s-cruncher .dragging-number {
+    color: #00A1D9;
+}
+.cm-s-cruncher .free-number {
+    color: #630D0A;
+    cursor: not-allowed !important;
+}
+.cm-s-cruncher .free-number.hovering-number {
+    color: #630D0A;
+}
+
+.connected-number-cid-0 { background-color: rgba(64, 128, 128, 0.6); }
+.connected-number-cid-1 { background-color: rgba(128, 64, 128, 0.6); }
+.connected-number-cid-2 { background-color: rgba(128, 128, 64, 0.6); }
+.connected-number-cid-3 { background-color: rgba(64, 128, 64, 0.6); }
+.connected-number-cid-4 { background-color: rgba(128, 64, 64, 0.6); }
+.connected-number-cid-5 { background-color: rgba(64, 64, 128, 0.6); }
+.connected-number-cid-6 { background-color: rgba(64, 64, 64, 0.6); }
+
+.number-widget {
+    position: absolute;
+    color: #214D70;
+    line-height: 1em;
+    z-index: 6;
+}
+.number-widget a {
+    margin: 2px;
+    cursor: pointer;
+    text-decoration: none;
+}
+.number-widget a :hover {
+    color: #00A1D9;
+}
+.number-widget a#connect {
+    cursor: move;
+}
+
+.free-number-widget.number-widget a {
+    color: #630D0A;
+}
+.free-number-widget.number-widget a :hover {
+    color: #AF4A46;
+}
+
+.cm-s-cruncher .cm-op {
+    color: #47D9BF;
+}
+.cm-s-cruncher .cm-unit {
+    color: #04518C;
+}
+.cm-s-cruncher .cm-heading {
+    color: black;
+    font-weight: bold;
+}
+
+.parse-error-icon {
+    color: #C9534F;
+}
+.parse-error-line {
+    background-color: #C9534F;
+    opacity: 0.1;
+    width: auto;
+}
+.parse-error-line.cm-equals:after {
+    content: '?';
+
+    position: relative;
+    font-size: 10px;
+    left: -8px;
+    top: -7px;
+    margin-right: -4px;
+}
+
+.over-determined-icon {
+    color: #003056;
+}
+.over-determined-free {
+    color: #630D0A;
+}
+
+.under-determined-icon {
+    color: #630D0A;
+}
+.under-determined-line.cm-equals:after {
+    content: '?';
+
+    position: relative;
+    font-size: 10px;
+    left: -8px;
+    top: -7px;
+    margin-right: -4px;
+}
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 7;
+    pointer-events: none;
+}
+
+/* charts */
+.graph-wrapper {
+    height: 140px;
+    background-color: #f7f7f7;
+    overflow: hidden;
+}
+
+svg {
+  font: 10px sans-serif;
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+    stroke: none;
+}
+
+/* dependency net */
+.link {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.node {
+  cursor: move;
+  fill: #ccc;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
