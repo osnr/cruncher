@@ -1,34 +1,68 @@
-#tools {
-    position: fixed;
-    top: 5px;
-    right: 5px;
+body {
+    margin: 0;
+}
 
+@toolbar-height: 54px;
+/* toolbar / title */
+#toolbar {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: @toolbar-height;
+    width: 100%;
+    background-color: #eaeaea;
+    border-bottom: 1px solid #bbb;
     z-index: 7;
 }
-
-#tools a {
-    opacity: 0.5;
+#tools {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    vertical-align: middle;
 }
-
-#tools a:hover {
-    opacity: 1;
+#title {
+    position: absolute;
+    width: 100%;
+    margin-top: 3px;
 }
-
 #file-name {
+    width: 100%;
+    font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
+    font-size: 18px;
+    color: #666666;
     border: 0 none;
     outline: 0 none;
     box-shadow: none;
-    text-align: right;
+    background: none;
+    text-align: center;
 }
-
+#tool-buttons {
+    position: absolute;
+    right: 10px;
+}
+#tool-buttons .btn {
+    background: #eee;
+    box-shadow: none;
+}
+#tool-buttons .btn:hover {
+    background: #fff;
+}
+#tool-buttons .save-doc {
+    margin-left: -1px;
+}
 #file-chooser {
     display: none;
 }
 
 /* CodeMirror theme */
 .cm-s-cruncher.CodeMirror {
+    position: fixed;
+
+    top: @toolbar-height;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
     height: 100%;
-    width: 100%;
     font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
     font-size: 14px;
     line-height: 28px;
@@ -51,40 +85,59 @@
 .cm-s-cruncher .CodeMirror-lines pre {
     color: gray;
 }
-
 .cm-s-cruncher .cm-number {
-    color: #003056;
+    color: #24232E;
     cursor: col-resize;
     z-index: 6;
 }
 .cm-s-cruncher .cm-number:not(.free-number) {
-    border-bottom: 1px dotted rgba(0, 48, 86, 0.5);
+    border-bottom: 1px dashed #003056;
 }
 .cm-s-cruncher .parse-error .cm-number {
     border-bottom: 0;
     cursor: auto;
 }
-.cm-s-cruncher .hovering-number {
-    color: #00A1D9;
+@free-color: #00a1d9;
+.cm-s-cruncher .hovering-number:not(.free-number) {
+    color: @free-color;
+    border-bottom: 1px dashed @free-color;
 }
 .cm-s-cruncher .dragging-number {
-    color: #00A1D9;
+    color: @free-color;
 }
 .cm-s-cruncher .free-number {
-    color: #630D0A;
+    color: #f52f6a;
     cursor: not-allowed !important;
 }
 .cm-s-cruncher .free-number.hovering-number {
-    color: #630D0A;
+    color: #f52f6a;
 }
 
-.connected-number-cid-0 { background-color: rgba(64, 128, 128, 0.6); }
-.connected-number-cid-1 { background-color: rgba(128, 64, 128, 0.6); }
-.connected-number-cid-2 { background-color: rgba(128, 128, 64, 0.6); }
-.connected-number-cid-3 { background-color: rgba(64, 128, 64, 0.6); }
-.connected-number-cid-4 { background-color: rgba(128, 64, 64, 0.6); }
-.connected-number-cid-5 { background-color: rgba(64, 64, 128, 0.6); }
-.connected-number-cid-6 { background-color: rgba(64, 64, 64, 0.6); }
+/* connections */
+.connected-number-cid-0 { background-color: rgba(64, 128, 128, 0.35); }
+.connected-number-cid-1 { background-color: rgba(128, 64, 128, 0.35); }
+.connected-number-cid-2 { background-color: rgba(128, 128, 64, 0.35); }
+.connected-number-cid-3 { background-color: rgba(64, 128, 64, 0.35); }
+.connected-number-cid-4 { background-color: rgba(128, 64, 64, 0.35); }
+.connected-number-cid-5 { background-color: rgba(64, 64, 128, 0.35); }
+.connected-number-cid-6 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-7 { background-color: rgba(128, 128, 128, 0.35); }
+.connected-number-cid-8 { background-color: rgba(128, 192, 128, 0.35); }
+.connected-number-cid-9 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-10 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-11 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-12 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-13 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-14 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-15 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-16 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-17 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-18 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-19 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-20 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-21 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-22 { background-color: rgba(64, 64, 64, 0.35); }
+.connected-number-cid-23 { background-color: rgba(64, 64, 64, 0.35); }
 
 .number-widget {
     position: absolute;
@@ -98,19 +151,17 @@
     text-decoration: none;
 }
 .number-widget a :hover {
-    color: #00A1D9;
+    color: @free-color;
 }
 .number-widget a#connect {
     cursor: move;
 }
-
 .free-number-widget.number-widget a {
-    color: #630D0A;
+    color: #f52f6a;
 }
 .free-number-widget.number-widget a :hover {
     color: #AF4A46;
 }
-
 .cm-s-cruncher .cm-op {
     color: #47D9BF;
 }
@@ -122,8 +173,16 @@
     font-weight: bold;
 }
 
+/* gutters / line states */
+.cm-s-cruncher .CodeMirror-gutters {
+    background: none;
+}
+.lineState {
+    width: 20px;
+    margin-left: 5px;
+}
 .parse-error-icon {
-    color: #C9534F;
+    color: #e6ada8;
 }
 .parse-error-line {
     background-color: #C9534F;
@@ -132,34 +191,29 @@
 }
 .parse-error-line.cm-equals:after {
     content: '?';
-
     position: relative;
     font-size: 10px;
     left: -8px;
     top: -7px;
     margin-right: -4px;
 }
-
 .over-determined-icon {
     color: #003056;
 }
 .over-determined-free {
     color: #630D0A;
 }
-
 .under-determined-icon {
     color: #630D0A;
 }
 .under-determined-line.cm-equals:after {
     content: '?';
-
     position: relative;
     font-size: 10px;
     left: -8px;
     top: -7px;
     margin-right: -4px;
 }
-
 #overlay {
     position: fixed;
     top: 0;
@@ -176,37 +230,34 @@
     background-color: #f7f7f7;
     overflow: hidden;
 }
-
 svg {
-  font: 10px sans-serif;
+    font: 10px sans-serif;
 }
-
 .line {
-  fill: none;
-  stroke: #000;
-  stroke-width: 1.5px;
+    fill: none;
+    stroke: #000;
+    stroke-width: 1.5px;
 }
-
 .axis path,
 .axis line {
-  fill: none;
-  shape-rendering: crispEdges;
+    fill: none;
+    shape-rendering: crispEdges;
 }
-
 .axis text {
     stroke: none;
 }
 
 /* dependency net */
 .link {
-  stroke: #000;
-  stroke-width: 1.5px;
+    stroke: #000;
+    stroke-width: 1.5px;
 }
-
-.node {
-  cursor: move;
-  fill: #ccc;
-  stroke: #000;
-  stroke-width: 1.5px;
+.node circle {
+    cursor: move;
+    fill: #ccc;
+    stroke: #000;
+    stroke-width: 1.5px;
 }
-
+.node text {
+    fill: red;
+}

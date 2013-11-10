@@ -16,7 +16,7 @@ id2class = {}
 for terminal, id of parser.symbols_
     id2class[id] = terminal2class[terminal]
 
-CodeMirror.defineMode "soulver", ->
+CodeMirror.defineMode 'cruncher', ->
     startState: ->
         parser.lexer
 

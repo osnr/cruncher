@@ -21,12 +21,12 @@ compileCoffee = (file) ->
         console.log "Compiled #{file}"
 
 compileJison = (file) ->
-    exec "jison -o #{coffeeOut}/#{path.basename(file, '.js')} #{file}", (err, stdout, stderr) ->
+    exec "jison -o #{jisonOut}/#{path.basename(file, '.jison')}.js #{file}", (err, stdout, stderr) ->
         return console.error err if err
         console.log "Compiled #{file}"
 
 compileLess = (file) ->
-    exec "lessc #{file} #{lessOut}/#{path.basename(file, '.css')}", (err, stdout, stderr) ->
+    exec "lessc #{file} #{lessOut}/#{path.basename(file, '.less')}.css", (err, stdout, stderr) ->
         return console.error err if err
         console.log "Compiled #{file}"
  
@@ -45,7 +45,11 @@ watchFiles = (files, fn) ->
         lastChange[file] = 0
         watchFile file, fn
         console.log "Watching #{file}"
- 
+
+task 'build:watch', 'Build, then watch', ->
+    invoke 'build'
+    invoke 'watch'
+
 task 'build', 'Compile *.coffee, *.jison and *.less', ->
     compileCoffee(f) for f in coffee
     compileJison(f) for f in jison

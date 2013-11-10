@@ -1,41 +1,72 @@
 <!doctype html>
 <html>
     <head>
-        <title>Cruncher</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF8">
+	<title>Cruncher</title>
 
-        <!-- jQuery -->
-        <script src="lib/js/jquery-1.8.3.js"></script>
-        
-        <script src="lib/js/raphael-min.js"></script>
+	<!-- jQuery -->
+	<script src="lib/js/jquery-1.8.3.js"></script>
+	<script src="lib/js/jquery.transit.js"></script>
+	
+	<script src="lib/js/raphael-min.js"></script>
 
-        <script src="lib/js/jquery.flot.js"></script>
-        <script src="lib/js/jquery.flot.navigate.js"></script>
+	<script src="lib/js/d3.v3.js"></script>
 
-        <link href="lib/css/bootstrap.min.css" rel="stylesheet"></link>
-        <script src="lib/js/bootstrap.min.js"></script>
+	<link href="lib/css/bootstrap.min.css" rel="stylesheet"></link>
+	<link href="lib/css/bootstrap-theme.min.css" rel="stylesheet"></link>
+	<script src="lib/js/bootstrap.min.js"></script>
 
-        <link href="lib/css/font-awesome.css" rel="stylesheet"></link>
+	<script src="lib/js/Blob.js"></script>
+	<script src="lib/js/FileSaver.js"></script>
 
-        <!-- CodeMirror -->
-        <link rel="stylesheet" href="lib/css/codemirror.css">
-        <script src="lib/js/codemirror.js"></script>
+	<link href="lib/css/font-awesome.css" rel="stylesheet"></link>
 
-        <!-- Cruncher -->
-        <link rel="stylesheet" href="cruncher.css">
-        <script src="bin/util.js"></script>
-        <script src="bin/solver.js"></script>
-        <script src="bin/value.js"></script>
-        <script src="bin/parser.js"></script>
-        <script src="bin/highlight.js"></script>
-        <script src="bin/scrubbing.js"></script>
-        <script src="bin/number-widget.js"></script>
-        <script src="bin/line-state.js"></script>
-        <script src="bin/connect.js"></script>
-        <script src="bin/graphs.js"></script>
-        <script src="bin/cruncher.js"></script>
+	<!-- CodeMirror -->
+	<link rel="stylesheet" href="lib/css/codemirror.css">
+	<script src="lib/js/codemirror.js"></script>
+
+	<!-- Cruncher -->
+	<link rel="stylesheet" href="bin/css/cruncher.css">
+	<script src="bin/js/util.js"></script>
+	<script src="bin/js/solver.js"></script>
+	<script src="bin/js/value.js"></script>
+	<script src="bin/js/parser.js"></script>
+	<script src="bin/js/highlight.js"></script>
+	<script src="bin/js/scrubbing.js"></script>
+	<script src="bin/js/number-widget.js"></script>
+	<script src="bin/js/line-state.js"></script>
+	<script src="bin/js/connect.js"></script>
+	<script src="bin/js/graphs.js"></script>
+	<script src="bin/js/docs.js"></script>
+	<script src="bin/js/cruncher.js"></script>
+
+	<script>
+	    $(function() {
+            $('#tool-buttons .btn').tooltip({
+            container: 'body',
+            placement: 'bottom'
+            });
+	    });
+	</script>
     </head>
     <body>
-        <textarea id="code" name="code"></textarea>
-        <div id="overlay"></div>
+	<div id="toolbar">
+	    <div id="tools">
+		<div id="title">
+		    <input type="text" id="file-name"></input>
+		</div>
+
+		<div id="tool-buttons">
+		    <a title="New" class="new-doc btn btn-default"><i class="icon-file"></i></a>
+		    <div class="btn-group">
+			<a title="Open from disk" class="open-doc btn btn-default"><i class="icon-folder-open"></i></a>
+			<input type="file" id="file-chooser"></input>
+			<a title="Save to disk" class="save-doc btn btn-default"><i class="icon-save"></i></a>
+		    </div>
+		</div>
+	    </div>
+	</div>
+	<textarea id="code" name="code"></textarea>
+	<div id="overlay"></div>
     </body>
 </html>

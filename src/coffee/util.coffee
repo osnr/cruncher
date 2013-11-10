@@ -1,20 +1,31 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-Cr.roundSig = (numStrings, n) ->
+Cr.sig = (text) ->
     sig = -1
 
-    for numString in numStrings when (numString.indexOf '.') != -1
+    numStrings = text.match /\d+(?:,\d+)*(?:\.\d*)?(?:[eE]-?\d+)?/g
+    for numString in numStrings
+        if (numString.indexOf '.') != -1
+            continue
+        numString = numString.replace /,\./g, ''
         if sig == -1
-            sig = numString.length - 1
+            sig = numString.length
         else
-            sig = Math.min(sig, numString.length - 1)
+            sig = Math.min sig, numString.length
 
-    console.log numStrings, n, sig
-    if sig == -1 then rnd = n.toFixed 0
-    else rnd = (parseFloat (n.toPrecision sig)).toString()
+    sig
 
-    if rnd == '-0' then 0
+Cr.roundSig = (n, sig) ->
+    if sig == -1
+        rnd = n.toFixed 0
+    else
+        rnd = (parseFloat (n.toPrecision sig)).toString()
+
+    if rnd == '0' then '0'
     else rnd
+
+Cr.inside = (a, b, c) ->
+    (a.line <= b.line <= c.line) and (a.ch < b.ch < c.ch)
 
 Cr.lt = (a, b) ->
     a.line < b.line or a.ch < b.ch
@@ -45,3 +56,10 @@ Cr.valueTo = (value) ->
 
 Cr.valueString = (value) ->
     Cr.editor.getRange (Cr.valueFrom value), (Cr.valueTo value)
+
+Cr.getFreeMarkedSpans = (line) ->
+    handle = Cr.editor.getLineHandle line
+    return [] unless handle?.markedSpans?
+
+    (span for span in handle.markedSpans \
+        when span.marker.className == 'free-number')

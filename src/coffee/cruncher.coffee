@@ -1,5 +1,7 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
+Cr.VERSION = '2013-11-10'
+
 $ ->
     onEquals = (cm) ->
         cursor = cm.getCursor 'end'
@@ -14,7 +16,7 @@ $ ->
 
     Cr.editor = editor = null
     Cr.editor = editor = CodeMirror.fromTextArea $('#code')[0],
-        lineNumbers: true
+        lineNumbers: false
         lineWrapping: true,
         gutters: ['lineState']
         theme: 'cruncher'
@@ -29,17 +31,28 @@ $ ->
 
     # generate unique ids for text markers
     # used in graphs so that we can have a (mark, chart) map
-    CodeMirror.TextMarker.prototype.toString = do ->
+    CodeMirror.TextMarker::toString = do ->
         id = 0
         -> @id ? @id = id++
 
-    getFreeMarkSpans = (line) ->
-        handle = editor.getLineHandle line
-        if handle?.markedSpans?
-            (span for span in handle.markedSpans \
-                when span.marker.className == 'free-number')
-        else
-            []
+    CodeMirror.TextMarker::replaceContents = (text) ->
+        {from, to} = @.find()
+        overlapMarks = editor.findMarksAt from
+
+        incLefts = []
+        incRights = []
+        for mark in overlapMarks
+            incLefts[mark] = mark.inclusiveLeft
+            incRights[mark] = mark.inclusiveRight
+            mark.inclusiveLeft = true
+            mark.inclusiveRight = true
+
+        Cr.editor.replaceRange text, from, to
+        for mark in overlapMarks
+            mark.inclusiveLeft = incLefts[mark]
+            mark.inclusiveRight = incRights[mark]
+
+        @
     
     reparseLine = (line) ->
         text = editor.getLine line
@@ -47,7 +60,7 @@ $ ->
        
         textToParse = text
 
-        spans = getFreeMarkSpans line
+        spans = Cr.getFreeMarkedSpans line
         for span in spans
             textToParse = (textToParse.substring 0, span.from) +
                 ((Array span.to - span.from + 1).join '') + # horrifying hack
@@ -57,7 +70,6 @@ $ ->
             parsed = parser.parse textToParse
             if parsed?.values?
                 value.line = line for value in parsed.values
-                editor.on handle, 'change', (line, changeObj) -> console.log 'line', line, changeObj
                 handle.parsed = parsed
             else
                 handle.parsed = null
@@ -71,7 +83,7 @@ $ ->
 
             i = 0
             firstToken = null
-            while not firstToken
+            while (not firstToken) and (i < text.length)
                 firstToken = Cr.editor.getTokenTypeAt { line: line, ch: i }
                 i += 1
             if firstToken == 'equals'
@@ -128,43 +140,41 @@ $ ->
         text = editor.getLine line
         parsed = handle.parsed
         if parsed?.constructor == Cr.Expression # edited a line without another side (yet)
-            freeString = parsed.numString()
+            if typeof parsed.num == 'function'
+                # we have an expression with a free number in it
+                # just lock it
+                mark = (s.marker for s in Cr.getFreeMarkedSpans line)[0]
+                mark.clear()
 
-            from =
-                line: line
-                ch: text.length + ' = '.length
-            to =
-                line: line
-                ch: text.length + ' = '.length + freeString.length
+                reparseLine line
+                evalLine line
+            else
+                freeString = parsed.numString()
 
-            editor.replaceRange ' = ' + freeString, from
-            markAsFree from, to
+                from =
+                    line: line
+                    ch: text.length + ' = '.length
+                to =
+                    line: line
+                    ch: text.length + ' = '.length + freeString.length
 
-            reparseLine line
-            
+                editor.replaceRange ' = ' + freeString, from
+                markAsFree from, to
+
+                reparseLine line
+
         else if parsed?.constructor == Cr.Equation
             try
+                console.log parsed
                 [freeValue, solution] = parsed.solve()
 
-                # TODO come up with a nicer way
-                # to preserve marks when replaceRange
-                mark = (span.marker for span in getFreeMarkSpans line)[0]
+                mark = (s.marker for s in Cr.getFreeMarkedSpans line)[0]
 
                 oldCursor = editor.getCursor()
 
-                mark.inclusiveLeft = true
-                mark.inclusiveRight = true
-
-                numbersOnLine =
-                    (text.substring(0, freeValue.start) + text.substring(freeValue.end))
-                    .match(/[0-9\.]+/g)
-
-                editor.replaceRange (Cr.roundSig numbersOnLine, solution),
-                    (Cr.valueFrom freeValue),
-                    (Cr.valueTo freeValue)
-
-                mark.inclusiveLeft = false
-                mark.inclusiveRight = false
+                sig = Cr.sig text.substring(0, freeValue.start) +
+                    text.substring(freeValue.end)
+                mark.replaceContents (Cr.roundSig solution, sig)
 
                 editor.setCursor oldCursor
 
@@ -181,7 +191,12 @@ $ ->
         handle.evaluating = false
 
     editor.on 'change', (instance, changeObj) ->
-        if not changeObj.origin
+        return if Cr.scr?
+
+        for adjustment in editor.doc.adjustments
+            do adjustment
+
+        if (not changeObj.origin) and editor.doc.history.length >= 2
             # automatic origin -- merge with last change
             history = editor.doc.history
             lastChange = history.done.pop()
@@ -213,9 +228,77 @@ $ ->
 
         Cr.updateConnectionsForChange changeObj
 
+    includeInMark = (mark) ->
+        mark.inclusiveLeft = true
+        mark.inclusiveRight = true
+
+        editor.doc.adjustments.push ->
+            mark.inclusiveLeft = false
+            mark.inclusiveRight = false
+
+    editor.on 'beforeChange', (instance, changeObj) ->
+        if changeObj.origin == '+delete' or Cr.scr?
+            return
+
+        startMark = (m for m in (editor.findMarksAt changeObj.from) \
+            when m.cid?)[0]
+        endMark = (m for m in (editor.findMarksAt changeObj.to) \
+            when m.cid?)[0]
+
+        if startMark? and not endMark?
+            startRange = startMark.find()
+            if Cr.inside startRange.from, changeObj.from, startRange.to
+                changeObj.cancel()
+
+        else if endMark? and not startMark?
+            endRange = endMark.find()
+            if Cr.inside endRange.from, changeObj.to, endRange.to
+                changeObj.cancel()
+
+        else if startMark? and endMark?
+            startRange = startMark.find()
+            endRange = endMark.find()
+            if startMark != endMark
+                if (Cr.inside startRange.from, changeObj.from, startRange.to) or
+                        (Cr.inside endRange.from, changeObj.to, endRange.to)
+                   changeObj.cancel()
+            else if (Cr.inside startRange.from, changeObj.from, startRange.to) and
+                    ((changeObj.text.length > 1) or not (/^[\-0-9\.]+$/.test changeObj.text[0]))
+                changeObj.cancel()
+            else if ((changeObj.text.length == 1) and (/^[\-0-9\.]+$/.test changeObj.text[0])) or
+                    (not changeObj.origin? and not (/^ = /.test changeObj.text[0]))
+                includeInMark startMark # (== endMark)
+                        
     ($ document).on 'mouseenter', '.cm-number', Cr.startHover
 
     editor.refresh()
 
-    for line in [0..editor.lineCount() - 1]
-        evalLine line
+    Cr.forceEval = ->
+        for line in [0..editor.lineCount() - 1]
+            evalLine line
+
+    setTitle = (title) ->
+        editor.doc.title = title
+        document.title = title + ' - Cruncher'
+        ($ '#file-name').val title
+
+    Cr.swappedDoc = (title) ->
+        editor.doc.adjustments = []
+        do Cr.forceEval
+        setTitle title
+
+    ($ '#file-name').on 'change keyup paste', ->
+        title = ($ @).val()
+        return if title == editor.doc.title
+
+        if not title? or title.match /^ *$/
+            console.log 'Invalid title'
+            return
+            # TODO alert
+
+        setTitle title
+
+    if not Cr.loadAutosave()
+        Cr.swappedDoc 'Untitled'
+
+    setInterval Cr.autosave, 5000
