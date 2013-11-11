@@ -4,6 +4,12 @@ class Cr.NumberWidget
     constructor: (@value, @pos, @onLockChange) ->
         @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-circle-blank"></i></a><a id="unlock"><i class="icon-cogs"></i></a></div>'
 
+        @cid = Cr.getValueCid @value
+        if @cid?
+            @$numberWidget.find('#connect i')
+                .addClass('icon-circle')
+                .removeClass 'icon-circle-blank'
+
         if typeof value.num == 'function'
             # this is a free number
             @mark = (mark for mark in Cr.editor.findMarksAt \
@@ -47,15 +53,9 @@ class Cr.NumberWidget
                 fromCoords = Cr.editor.charCoords Cr.valueFrom @value
                 toCoords = Cr.editor.charCoords Cr.valueTo @value
 
-                cid = Cr.getValueCid @value
-                if cid?
-                    @$numberWidget.find('#connect i')
-                        .addClass('icon-circle')
-                        .removeClass 'icon-circle-blank'
-                else
-                    cid = Cr.newCid()
+                @cid ?= Cr.newCid()
 
-                Cr.startConnect cid,
+                Cr.startConnect @cid,
                     @value,
                     (toCoords.left + fromCoords.left) / 2,
                     (fromCoords.bottom + fromCoords.top) / 2
