@@ -85,8 +85,9 @@ body {
 .cm-s-cruncher .CodeMirror-lines pre {
     color: gray;
 }
+@number-color: #24232E;
 .cm-s-cruncher .cm-number {
-    color: #24232E;
+    color: @number-color;
     cursor: col-resize;
     z-index: 6;
 }
@@ -97,20 +98,21 @@ body {
     border-bottom: 0;
     cursor: auto;
 }
-@free-color: #00a1d9;
+@hover-color: #00a1d9;
 .cm-s-cruncher .hovering-number:not(.free-number) {
-    color: @free-color;
-    border-bottom: 1px dashed @free-color;
+    color: @hover-color;
+    border-bottom: 1px dashed @hover-color;
 }
 .cm-s-cruncher .dragging-number {
-    color: @free-color;
+    color: @hover-color;
 }
+@free-color: #f52f6a;
 .cm-s-cruncher .free-number {
-    color: #f52f6a;
+    color: @free-color;
     cursor: not-allowed !important;
 }
 .cm-s-cruncher .free-number.hovering-number {
-    color: #f52f6a;
+    color: @free-color;
 }
 
 /* connections */
@@ -151,13 +153,13 @@ body {
     text-decoration: none;
 }
 .number-widget a :hover {
-    color: @free-color;
+    color: @hover-color;
 }
 .number-widget a#connect {
     cursor: move;
 }
 .free-number-widget.number-widget a {
-    color: #f52f6a;
+    color: @free-color;
 }
 .free-number-widget.number-widget a :hover {
     color: #AF4A46;
@@ -179,7 +181,7 @@ body {
 }
 .lineState {
     width: 20px;
-    margin-left: 5px;
+    margin-left: 8px;
 }
 .parse-error-icon {
     color: #e6ada8;
@@ -198,13 +200,16 @@ body {
     margin-right: -4px;
 }
 .over-determined-icon {
-    color: #003056;
+    color: @hover-color;
 }
-.over-determined-free {
-    color: #630D0A;
+.over-determined-locked {
+    color: @hover-color;
+}
+.under-determined-free {
+    color: @free-color;
 }
 .under-determined-icon {
-    color: #630D0A;
+    color: @free-color;
 }
 .under-determined-line.cm-equals:after {
     content: '?';

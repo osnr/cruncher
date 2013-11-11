@@ -43,6 +43,7 @@ Cr.startConnect = (cid, value, ox, oy) ->
         path.remove()
 
         if prevTargetMark? # did we actually connect?
+            animateConnect cid
             updateConnections cid, Cr.valueString value
         else
             disconnect cid, value
@@ -52,24 +53,23 @@ Cr.startConnect = (cid, value, ox, oy) ->
     ($ document)
         .on('mousemove.connect', onMoveConnect)
         .on 'mouseup.connect', onUpConnect
-        # .css 'cursor', 'pointer'
 
 connect = (cid, value) ->
     mark = Cr.editor.markText (Cr.valueFrom value),
         (Cr.valueTo value),
         className: 'connected-number-cid-' + cid
-        inclusiveLeft: true # so mark survives replacement of its inside
-        inclusiveRight: true
+        inclusiveLeft: false
+        inclusiveRight: false
     mark.cid = cid
 
     mark
 
-getMarkCid = (mark) -> # hack
-    className = mark.className
-    if className.match /^connected-number-cid-\d+/
-        parseFloat className.substring ((className.lastIndexOf '-') + 1)
-    else
-        null
+animateConnect = (cid) ->
+    ($ '.connected-number-cid-' + cid).transition(
+        fontSize: 20
+        duration: 170
+    ).transition
+        fontSize: 14
 
 disconnect = (cid, value) ->
     # only triggers with 'real' disconnect,
@@ -118,33 +118,84 @@ updateConnections = (cid, newString) ->
     for mark in Cr.editor.getAllMarks() when mark.cid == cid
         range = mark.find()
         if range? and (Cr.editor.getRange range.from, range.to) != newString
-            Cr.editor.replaceRange newString, range.from, range.to
+            mark.replaceContents newString
 
-Cr.depsOnValue = depsOnValue = (value, sameConnection) ->
-    # takes a value `value`, returns all _marks_ dependent on `value`
-    # either same-line free numbers or connected numbers
-    # (not including `value` itself)
-    deps = []
+Cr.dependentsOn = (mark, seenMarks = []) ->
+    return [] if not mark?
 
-    # find free deps
-    parsed = (Cr.editor.getLineHandle value.line).parsed
-    freeValues = (v for v in parsed.values when typeof v.num == 'function')
-    for freeValue in freeValues
-        if freeValue != value
-            deps.push.apply deps, depsOnValue freeValue
-            deps.push (mark for mark in Cr.editor.findMarksAt \
-                Cr.valueFrom freeValue when mark.className == 'free-number')[0]
+    pos = mark.find().from
+    if not mark.cid?
+        cidMarks = (m for m in (Cr.editor.findMarksAt pos) \
+            when m.cid?)
+        if cidMarks.length == 1
+            # throw out this base scrub-mark in favor
+            # of one w/ connections
+            mark = cidMarks[0]
+        else if cidMarks.length > 1
+            throw new Error
 
-    if sameConnection then return deps
+    seenMarks.push mark
+    depts = []
 
-    # find connection deps
-    mark = findMark (Cr.valueFrom value), (Cr.valueTo value)
-    cid = getMarkCid mark if mark?
-    if cid?
-        for cMark in Cr.editor.getAllMarks() when cMark.cid == cid
-            cValue = Cr.nearestValue cMark.find().from
-            if cValue != value
-                deps.push.apply deps, (depsOnValue cValue, true)
-                deps.push cMark
+    if mark.cid?
+        for cMark in Cr.editor.getAllMarks()
+            continue unless cMark.cid == mark.cid and
+                (seenMarks.indexOf cMark) == -1
+            cPos = cMark.find().from
 
-    return deps
+            seenMarks.push cMark
+            depts.push
+                mark: cMark
+                value: Cr.nearestValue cPos
+                type: 'connection'
+                lineParsed: (Cr.editor.getLineHandle cPos.line).parsed
+                depts: (Cr.dependentsOn cMark, seenMarks)
+
+    parsed = (Cr.editor.getLineHandle pos.line).parsed
+    freeSpan = (Cr.getFreeMarkedSpans pos.line)[0]
+    if freeSpan?
+        freeMark = freeSpan.marker
+        freePos =
+            line: pos.line
+            ch: freeSpan.from
+
+        if parsed? and not (Cr.eq freePos, pos)
+            freeValue = Cr.nearestValue freePos
+            value = Cr.nearestValue pos
+
+            lineText = Cr.editor.getLine pos.line
+
+            seenMarks.push freeMark
+            depts.push
+                mark: freeMark
+                value: freeValue
+                type: 'free'
+                lineParsed: parsed
+                depts: (Cr.dependentsOn freeMark, seenMarks)
+
+    depts
+
+Cr.id = (x) -> x
+
+Cr.functions = (xValue, depts) ->
+    functions = {}
+
+    for dept in depts
+        if dept.type == 'connection'
+            f = Cr.id
+        else if dept.type == 'free'
+            f = (x) -> dept.lineParsed.substitute(xValue, x).solve()[1]
+        functions[dept.mark] = f
+
+        continue unless dept.depts?.length > 0
+
+        deptFunctions = Cr.functions dept.value, dept.depts
+        for deptMark in deptFunctions
+            # run adjustment on deptFunctions' functions
+            # right now, they're dept.value -> y
+            # we want them to be xValue -> y
+            deptF = deptFunctions[deptMark]
+            functions[deptMark] = do (f, deptF) ->
+                (x) -> deptF (f x)
+
+    functions

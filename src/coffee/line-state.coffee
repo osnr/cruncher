@@ -16,7 +16,7 @@ lineStates =
     parseError:
         gutterMarker:
             makeGutterMarker 'parse-error-icon',
-                'icon-question',
+                'icon-question-sign',
                 'I can\'t understand this line.'
         bgClass: 'parse-error-line'
         wrapClass: 'parse-error'
@@ -24,16 +24,16 @@ lineStates =
     overDetermined:
         gutterMarker:
             makeGutterMarker 'over-determined-icon',
-                'icon-lock',
-                'This line doesn\'t have enough <span class="over-determined-free">free numbers</span> for me to change.'
+                'icon-edit-sign',
+                'This line is entirely <span class="over-determined-locked">changeable numbers <i class="icon-edit-sign"></span></i>. I can\'t change anything to make the left and right side equal.'
         bgClass: 'over-determined-line'
         wrapClass: 'over-determined'
 
     underDetermined:
         gutterMarker:
             makeGutterMarker 'under-determined-icon',
-                'icon-unlock',
-                'This line has too many <span class="over-determined-free">free numbers</span>!' +
+                'icon-cogs',
+                'This line has too many <span class="under-determined-free">computer-controlled numbers <i class="icon-cogs"></i></span>! ' +
                 'I don\'t know how to solve it.'
         bgClass: 'under-determined-line'
         wrapClass: 'under-determined'

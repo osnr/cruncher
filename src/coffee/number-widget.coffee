@@ -2,7 +2,7 @@ window.Cruncher = Cr = window.Cruncher || {}
 
 class Cr.NumberWidget
     constructor: (@value, @pos, @onLockChange) ->
-        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-circle-blank"></i></a><a id="unlock"><i class="icon-lock"></i></a></div>'
+        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-circle-blank"></i></a><a id="unlock"><i class="icon-cogs"></i></a></div>'
 
         if typeof value.num == 'function'
             # this is a free number
@@ -23,8 +23,8 @@ class Cr.NumberWidget
         offset = @$number.offset()
         @$numberWidget #.width(($ this).width())
             .offset
-                top: offset.top + @$number.height()
-                left: offset.left
+                top: offset.top + @$number.height() + 1
+                left: offset.left - 3
             .mouseenter =>
                 @$number.off 'mouseleave'
 
@@ -81,8 +81,8 @@ class Cr.NumberWidget
         ($ '#unlock')
             .attr('id', 'lock')
             .find('i')
-                .removeClass('icon-lock')
-                .addClass 'icon-unlock'
+                .removeClass('icon-cogs')
+                .addClass 'icon-edit-sign'
         @$numberWidget.addClass 'free-number-widget'
 
     unsetFreeNumber: ($target) =>
@@ -93,6 +93,6 @@ class Cr.NumberWidget
         ($ '#lock')
             .attr('id', 'unlock')
             .find('i')
-                .removeClass('icon-unlock')
-                .addClass 'icon-lock'
+                .removeClass('icon-edit-sign')
+                .addClass 'icon-cogs'
         @$numberWidget.removeClass 'free-number-widget'

@@ -30,7 +30,6 @@ $ ->
     # They're attached to the handle so that they follow the line around if it moves.
 
     # generate unique ids for text markers
-    # used in graphs so that we can have a (mark, chart) map
     CodeMirror.TextMarker::toString = do ->
         id = 0
         -> @id ? @id = id++
@@ -51,6 +50,7 @@ $ ->
         for mark in overlapMarks
             mark.inclusiveLeft = incLefts[mark]
             mark.inclusiveRight = incRights[mark]
+            console.log mark.inclusiveLeft, mark.inclusiveRight
 
         @
     
@@ -187,6 +187,8 @@ $ ->
                     Cr.updateSign line, handle
                 else if e instanceof Cr.UnderDeterminedException
                     Cr.setLineState line, 'underDetermined'
+                else
+                    throw e
 
         handle.evaluating = false
 
@@ -195,6 +197,7 @@ $ ->
 
         for adjustment in editor.doc.adjustments
             do adjustment
+        editor.doc.adjustments = []
 
         if (not changeObj.origin) and editor.doc.history.length >= 2
             # automatic origin -- merge with last change

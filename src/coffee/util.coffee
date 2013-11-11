@@ -16,12 +16,11 @@ Cr.sig = (text) ->
     sig
 
 Cr.roundSig = (n, sig) ->
-    if sig == -1
-        rnd = n.toFixed 0
-    else
-        rnd = (parseFloat (n.toPrecision sig)).toString()
+    n = Math.round(n * 1e10) / 1e10
 
-    if rnd == '0' then '0'
+    rnd = n.toString()
+
+    if rnd == '-0' then '0'
     else rnd
 
 Cr.inside = (a, b, c) ->
