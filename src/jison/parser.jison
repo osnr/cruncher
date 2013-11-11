@@ -7,7 +7,7 @@
 .+":"$                   return 'HEADING'
 [\s"$""%"]+              /* skip whitespace, units */
 ""+                    return 'FREE' /* horrible hack */
-[0-9\.]+                 return 'NUMBER'
+[0-9\.\,]+               return 'NUMBER'
 "="                      return 'EQUALS'
 "*"                      return 'MUL'
 "/"                      return 'DIV'
@@ -17,7 +17,7 @@
 "("                      return 'PAREN_OPEN'
 ")"                      return 'PAREN_CLOSE'
 <<EOF>>                  return 'EOF'
-[^\s\(\)]+                   /* skip text */
+[^\s\(\)]+               /* skip text */
 
 /lex
 
@@ -48,7 +48,7 @@ value
     : MINUS value %prec UMINUS
         {$$ = $value.neg();}
     | NUMBER
-        {$$ = new Cruncher.Value(Number($NUMBER));}
+        {$$ = new Cruncher.Value(Number($NUMBER.replace(/,/g, '')));}
     | FREE
         {$$ = new Cruncher.Value(null);}
     ;

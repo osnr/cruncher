@@ -50,7 +50,6 @@ $ ->
         for mark in overlapMarks
             mark.inclusiveLeft = incLefts[mark]
             mark.inclusiveRight = incRights[mark]
-            console.log mark.inclusiveLeft, mark.inclusiveRight
 
         @
     

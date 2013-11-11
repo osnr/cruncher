@@ -61,11 +61,17 @@ startDrag = (value) -> (downEvent) =>
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
 
-    graphMarks = Cr.depsOnValue value
-    Cr.addGraph graphMarks
+    depts = Cr.dependentsOn scr.mark
+    fns = Cr.functions value, depts
+    graphMarks = Cr.addCharts depts, fns
+    # TODO add graph
 
     xCenter = downEvent.pageX
 
+    replaceDepts = (depts, fns, x) ->
+        for dept in depts
+            sig = 
+            dept.mark.deplaceContents 
     onDragMove = (moveEvent) =>
         xOffset = moveEvent.pageX - xCenter
         xCenter = moveEvent.pageX
@@ -80,7 +86,7 @@ startDrag = (value) -> (downEvent) =>
             numString = scr.num.toFixed scr.fixedDigits
             Cr.editor.replaceRange numString, range.from, range.to
 
-            Cr.updateGraph graphMarks
+            Cr.updateCharts graphMarks
 
     onDragUp = =>
         scr.mark.clear()
@@ -88,7 +94,7 @@ startDrag = (value) -> (downEvent) =>
         ($ document).off('mousemove.scrub')
             .off 'mouseup.scrub'
 
-        Cr.removeGraph()
+        Cr.removeCharts()
 
         # TODO remove this selection-restoring hack
         setTimeout (->

@@ -1,11 +1,11 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-graphForLineHandle = (line, handle) ->
+gForLineHandle = (line, handle) ->
     handle = handle ? Cr.editor.getLineHandle line
 
-    if handle.graph? then return handle.graph
+    if handle.g? then return handle.g
 
-    g = handle.graph = {}
+    g = handle.g = {}
     g.$wrapper = ($ '<div class="graph-wrapper"></div>')
         .hide()
 
@@ -17,133 +17,163 @@ graphForLineHandle = (line, handle) ->
 
     g
 
-width = 10
+width = 100
+height = 100
+ampl = 10
+scaleSide = 0.1
 delta = 0.05
-getData = (chart, indepValue) ->
-    [ ([Cr.scr.num + (dx * delta),
-        chart.markF Cr.scr.num + (dx * delta), indepValue] \
-        for dx in [(-(width + 2) / delta)..((width + 2) / delta)]) ]
+getData = (yFn, xMin, xMax) ->
+    ([x, yFn(x)] for x in [xMin..xMax] by delta)
 
-addChart = (mark) ->
-    range = mark.find()
+addChart = (yMark, yFn) ->
+    yRange = yMark.find()
 
-    line = range.from.line
-    handle = Cr.editor.getLineHandle line
-    g = graphForLineHandle line, handle
+    yLine = yRange.from.line
+    yHandle = Cr.editor.getLineHandle yLine
 
-    # marks are keys thanks to the toString() in cruncher.coffee
-    return if g.charts[mark]?
+    g = gForLineHandle yLine, yHandle
 
-    fromCoords = Cr.editor.charCoords range.from
-    toCoords = Cr.editor.charCoords range.to
+    return if g.charts[yMark]?
 
-    centerX = (toCoords.left + fromCoords.left) / 2
-    x = centerX - 100 / 2
-    if x < 20
-        x = 20
-        centerX = 20 + 100 / 2
+    fromCoords = Cr.editor.charCoords yRange.from
+    toCoords = Cr.editor.charCoords yRange.to
 
-    indepValue = Cr.nearestValue Cr.scr.mark.find().from
+    centerLeft = (toCoords.left + fromCoords.left) / 2
+    left = centerLeft - width / 2
+    if left < 20
+        left = 20
+        centerLeft = 20 + 100 / 2
 
-    g.charts[mark] = chart = {}
+    g.charts[yMark] = chart = {}
 
-    markNum = parseFloat Cr.editor.getRange range.from, range.to
-    if mark.className == 'free-number'
-        chart.markF = (x, indepValue) ->
-            handle.parsed.substitute(indepValue, x).solve()[1]
+    chart.origX = Cr.scr.num
+    chart.yFn = yFn
+    y = yFn Cr.scr.num
 
-    else
-        chart.markF = (x, indepValue) ->
-            x
+    chart.xScale = xScale = d3.scale.linear()
+        .domain([Cr.scr.num - ampl, Cr.scr.num + ampl])
+        .range([0, width])
+    chart.yScale = yScale = d3.scale.linear()
+        .domain([y - ampl, y + ampl])
+        .range([height, 0])
 
-    chart.$chart = ($ '<div class="chart"></div>')
-        .offset
-            top: 0
-            left: x
-        .appendTo g.$wrapper
-    chart.plot = $.plot chart.$chart,
-        (getData chart, indepValue),
-        grid:
-            markings: [{
-                color: '#003056'
-                lineWidth: 1
-                xaxis:
-                    from: indepValue.num
-                    to: indepValue.num
-            }, {
-                color: '#003056'
-                lineWidth: 1
-                yaxis:
-                    from: markNum
-                    to: markNum
-            }]
-        xaxis:
-            min: indepValue.num - width
-            max: indepValue.num + width
-        yaxis:
-            min: markNum - width
-            max: markNum + width
+    chart.data = getData yFn, Cr.scr.num - ampl, Cr.scr.num + ampl
 
-setAxisBounds = (chart, curY) ->
-    axes = chart.plot.getAxes()
-    xaxis = axes.xaxis
-    xaxis.options.min = xaxis.min + Cr.scr.delta
-    xaxis.options.max = xaxis.max + Cr.scr.delta
+    $xMark = ($ '.' + Cr.scr.mark.className).last()
+    $yMark = ($ '.' + yMark.className).last()
+    chart.line = d3.svg.line()
+        .x(([x, y], i) -> xScale x)
+        .y(([x, y], i) -> yScale y)
 
-    yaxis = axes.yaxis
-    yaxis.options.min = curY - width
-    yaxis.options.max = curY + width
+    chart.svg = svg = d3.select(g.$wrapper[0]).append('svg')
+        .attr('width', width + 40 + 20)
+        .attr('height', height + 20 + 20)
+        .append('g')
+            .attr('transform', 'translate(40,20)')
+
+    clipPathId = 'clip-path-' + new Date().getTime().toString()
+
+    svg.append('defs').append('clipPath')
+        .attr('id', clipPathId)
+        .append('rect')
+            .attr('width', width)
+            .attr('height', height)
+
+    chart.xAxis = d3.svg.axis()
+        .scale(xScale)
+        .orient('bottom')
+        .ticks(5)
+    xColor = $xMark.css('color')
+    chart.xAxisG = svg.append('g')
+        .attr('class', 'x axis')
+        .style('stroke', xColor)
+        .style('fill', xColor)
+        .attr('transform', 'translate(0,' + height + ')')
+        .call(chart.xAxis)
+
+    chart.yAxis = d3.svg.axis()
+        .scale(yScale)
+        .orient('left')
+        .ticks(5)
+    yColor = $yMark.css('color')
+    chart.yAxisG = svg.append('g')
+        .attr('class', 'y axis')
+        .style('stroke', yColor)
+        .style('fill', yColor)
+        .call(chart.yAxis)
+
+    chart.path = svg.append('g')
+        .attr('clip-path', 'url(#' + clipPathId + ')')
+        .append('path')
+        .datum(chart.data)
+        .attr('class', 'line')
+        .attr('d', chart.line)
+
+    chart.dot = svg.append('path')
+        .attr('transform', 'translate(' + (xScale Cr.scr.num) +
+            ',' + (yScale y) + ')')
+        .attr('d', d3.svg.symbol())
 
 updateChart = (mark) ->
     range = mark.find()
-    g = graphForLineHandle range.from.line
+    g = gForLineHandle range.from.line
 
     chart = g.charts[mark]
 
-    markNum = parseFloat Cr.editor.getRange range.from, range.to
-    indepValue = Cr.nearestValue Cr.scr.mark.find().from
+    return unless chart?
 
-    chart.plot.setData getData chart, indepValue
+    y = chart.yFn Cr.scr.num
 
-    markings = chart.plot.getOptions().grid.markings
-    markings[2] =
-        color: '#00A1D9'
-        lineWidth: 1
-        xaxis:
-            from: indepValue.num
-            to: indepValue.num
-    markings[3] =
-        color: '#00A1D9'
-        lineWidth: 1
-        yaxis:
-            from: markNum
-            to: markNum
+    xDomain = chart.xScale.domain()
+    xMin = Math.min xDomain[0], Cr.scr.num - ampl
+    xMax = Math.max xDomain[1], Cr.scr.num + ampl
+    chart.xScale.domain([xMin, xMax])
 
-    setAxisBounds chart, markNum
+    yDomain = chart.yScale.domain()
+    yMin = Math.min yDomain[0], (chart.yFn xMin)
+    yMax = Math.max yDomain[1], (chart.yFn xMax)
+    chart.yScale.domain([yMin, yMax])
 
-    chart.plot.setupGrid()
-    chart.plot.draw()
+    chart.data = getData chart.yFn, xMin, xMax
+    chart.path.datum chart.data
 
-shiftCharts = ->
-    Cr.editor.eachLine (handle) ->
-        return unless handle.graph?
-        # for mark, chart of handle.graph.charts
-            #chart.$chart.offset
-            #    left: 100
+    chart.xAxisG.transition()
+        .duration(100)
+        .ease('linear')
+        .call(chart.xAxis)
+    chart.yAxisG.transition()
+        .duration(100)
+        .ease('linear')
+        .call(chart.yAxis)
+
+    chart.dot.attr('transform',
+        'translate(' + (chart.xScale Cr.scr.num) +
+            ',' + (chart.yScale y) + ')')
+
+    chart.path.attr('d', chart.line)
+        .attr('transform', 'translate(' + (chart.xScale xMin) +
+            ',' + (chart.yScale yMax) + ')')
 
 deleteChart = (mark) ->
     delete g.charts[mark]
 
-Cr.addGraph = (marks) ->
-    addChart mark for mark in marks
-    shiftCharts()
+Cr.addCharts = (depts, fns, marks = []) ->
+    for dept in depts
+        if fns[dept.mark] != Cr.id
+            addChart dept.mark, fns[dept.mark]
 
-Cr.updateGraph = (marks) ->
+        marks.push dept.mark
+
+        if dept.depts?.length > 0
+            Cr.addCharts dept.depts, fns, marks
+    marks
+
+Cr.updateCharts = (marks) ->
     updateChart mark for mark in marks
 
-Cr.removeGraph = ->
+Cr.removeCharts = ->
     Cr.editor.eachLine (handle) ->
-        handle.graph?.$wrapper.slideUp 100, ->
-            handle.graph.widget.clear()
-            delete handle.graph
+        handle.g?.$wrapper.slideUp 100, ->
+            handle.g.widget.clear()
+            delete handle.g
         false

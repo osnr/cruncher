@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-dx = 1e-13
+dx = 1e-9
 derivative = (f) ->
     (x) -> ((f (x + dx)) - (f x)) / dx
 
@@ -9,7 +9,7 @@ Cr.newtonsMethod = newtonsMethod = (f, x, fp, numIters) ->
     numIters = numIters ? 0
     if -dx < (f x) < dx
         x
-    else if numIters > 100
+    else if numIters > 1000
         NaN
     else
         newtonsMethod f, x - (f x) / (fp x), fp, numIters + 1

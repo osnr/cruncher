@@ -16,7 +16,7 @@ Cr.sig = (text) ->
     sig
 
 Cr.roundSig = (n, sig) ->
-    n = Math.round(n * 1e10) / 1e10
+    n = Math.round(n * 1e5) / 1e5
 
     rnd = n.toString()
 
