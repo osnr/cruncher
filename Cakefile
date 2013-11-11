@@ -5,7 +5,7 @@ path = require 'path'
 lastChange = {}
 
 coffee = ('src/coffee/' + s for s in \
-    ['connect.coffee', 'cruncher.coffee', 'docs.coffee', 'graphs.coffee',
+    ['connect.coffee', 'cruncher.coffee', 'docs.coffee', 'charts.coffee',
      'highlight.coffee', 'line-state.coffee', 'number-widget.coffee',
      'scrubbing.coffee', 'solver.coffee', 'util.coffee', 'value.coffee'])
 jison = ['src/jison/parser.jison']

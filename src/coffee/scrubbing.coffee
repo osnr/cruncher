@@ -70,8 +70,9 @@ startDrag = (value) -> (downEvent) =>
 
     replaceDepts = (depts, fns, x) ->
         for dept in depts
-            sig = 
-            dept.mark.deplaceContents 
+            dept.mark.replaceContents (Cr.roundSig fns[dept.mark](x), 1)
+            replaceDepts dept.depts, fns, x
+
     onDragMove = (moveEvent) =>
         xOffset = moveEvent.pageX - xCenter
         xCenter = moveEvent.pageX
@@ -84,7 +85,8 @@ startDrag = (value) -> (downEvent) =>
             scr.num += scr.delta
 
             numString = scr.num.toFixed scr.fixedDigits
-            Cr.editor.replaceRange numString, range.from, range.to
+            scr.mark.replaceContents numString
+            replaceDepts depts, fns, scr.num
 
             Cr.updateCharts graphMarks
 
