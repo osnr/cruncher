@@ -70,7 +70,7 @@ startDrag = (value) -> (downEvent) =>
 
     replaceDepts = (depts, fns, x) ->
         for dept in depts
-            dept.mark.replaceContents (Cr.roundSig fns[dept.mark](x), 1)
+            dept.mark.replaceContents (Cr.roundSig fns[dept.mark](x), 1), '*scrubsolve'
             replaceDepts dept.depts, fns, x
 
     onDragMove = (moveEvent) =>
@@ -85,7 +85,7 @@ startDrag = (value) -> (downEvent) =>
             scr.num += scr.delta
 
             numString = scr.num.toFixed scr.fixedDigits
-            scr.mark.replaceContents numString
+            scr.mark.replaceContents numString, '*scrubsolve'
             replaceDepts depts, fns, scr.num
 
             Cr.updateCharts graphMarks

@@ -89,9 +89,9 @@ disconnectMark = (cid, mark) ->
     if mark.cid == cid
         mark.clear()
 
-Cr.newCid = ->
-    cid = Math.floor(Math.random()*16777215).toString(16)
-    ($ 'head').append '<style>.connected-number-cid-'+cid+' { background-color: #' + cid + '; </style>'
+Cr.newCid = -> # new cid on the block
+    cid = 0
+    cid++ while ($ '.connected-number-cid-' + cid).length > 0
     cid
 
 findMark = (from, to) ->
@@ -118,7 +118,7 @@ updateConnections = (cid, newString) ->
     for mark in Cr.editor.getAllMarks() when mark.cid == cid
         range = mark.find()
         if range? and (Cr.editor.getRange range.from, range.to) != newString
-            mark.replaceContents newString
+            mark.replaceContents newString, '+solve'
 
 Cr.dependentsOn = (mark, seenMarks = []) ->
     return [] if not mark?

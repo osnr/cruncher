@@ -34,7 +34,7 @@ $ ->
         id = 0
         -> @id ? @id = id++
 
-    CodeMirror.TextMarker::replaceContents = (text) ->
+    CodeMirror.TextMarker::replaceContents = (text, origin) ->
         {from, to} = @.find()
         overlapMarks = editor.findMarksAt from
 
@@ -46,7 +46,7 @@ $ ->
             mark.inclusiveLeft = true
             mark.inclusiveRight = true
 
-        Cr.editor.replaceRange text, from, to
+        Cr.editor.replaceRange text, from, to, origin
         for mark in overlapMarks
             mark.inclusiveLeft = incLefts[mark]
             mark.inclusiveRight = incRights[mark]
@@ -157,7 +157,7 @@ $ ->
                     line: line
                     ch: text.length + ' = '.length + freeString.length
 
-                editor.replaceRange ' = ' + freeString, from
+                editor.replaceRange ' = ' + freeString, from, null, '+solve'
                 markAsFree from, to
 
                 reparseLine line
@@ -173,7 +173,7 @@ $ ->
 
                 sig = Cr.sig text.substring(0, freeValue.start) +
                     text.substring(freeValue.end)
-                mark.replaceContents (Cr.roundSig solution, sig)
+                mark.replaceContents (Cr.roundSig solution, sig), '+solve'
 
                 editor.setCursor oldCursor
 
@@ -192,14 +192,14 @@ $ ->
         handle.evaluating = false
 
     editor.on 'change', (instance, changeObj) ->
-        return if Cr.scr?
+        return if Cr.scr? # don't catch if scrubbing
 
         for adjustment in editor.doc.adjustments
             do adjustment
         editor.doc.adjustments = []
 
-        if (not changeObj.origin) and editor.doc.history.length >= 2
-            # automatic origin -- merge with last change
+        if (changeObj.origin == '+solve') and editor.doc.history.done.length >= 2
+            # automatic origin -- merge with last change (hack)
             history = editor.doc.history
             lastChange = history.done.pop()
             prevChange = history.done.pop()
