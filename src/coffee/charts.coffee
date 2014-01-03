@@ -23,7 +23,10 @@ ampl = 10
 scaleSide = 0.1
 delta = 0.05
 getData = (yFn, xMin, xMax) ->
-    ([x, yFn(x)] for x in [xMin..xMax] by delta)
+    for x in [xMin..xMax] by delta
+        y = yFn(x)
+        continue if (isNaN y)
+        [x, yFn(x)]
 
 addChart = (yMark, yFn) ->
     yRange = yMark.find()
