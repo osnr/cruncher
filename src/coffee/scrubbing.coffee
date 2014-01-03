@@ -105,6 +105,13 @@ startDrag = (value) -> (downEvent) =>
 
         Cr.scr = scr = null
 
+        # since scrubbing doesn't use the standard
+        # evaluator, we need to eval the line with that
+        # to make everything match again afterward
+        changedLines = $.unique (dept.line for dept in depts)
+        for line in changedLines
+            Cr.evalLine line
+
     ($ document).on('mousemove.scrub', onDragMove)
         .on 'mouseup.scrub', onDragUp
     ($ this).off 'mousedown.scrub'

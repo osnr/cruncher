@@ -148,6 +148,7 @@ Cr.dependentsOn = (mark, seenMarks = []) ->
                 mark: cMark
                 value: Cr.nearestValue cPos
                 type: 'connection'
+                line: cPos.line
                 lineParsed: (Cr.editor.getLineHandle cPos.line).parsed
                 depts: (Cr.dependentsOn cMark, seenMarks)
 
@@ -170,6 +171,7 @@ Cr.dependentsOn = (mark, seenMarks = []) ->
                 mark: freeMark
                 value: freeValue
                 type: 'free'
+                line: pos.line
                 lineParsed: parsed
                 depts: (Cr.dependentsOn freeMark, seenMarks)
 
