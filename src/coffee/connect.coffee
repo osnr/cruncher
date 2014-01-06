@@ -192,7 +192,7 @@ Cr.functions = (xValue, depts) ->
         continue unless dept.depts?.length > 0
 
         deptFunctions = Cr.functions dept.value, dept.depts
-        for deptMark in deptFunctions
+        for own deptMark of deptFunctions
             # run adjustment on deptFunctions' functions
             # right now, they're dept.value -> y
             # we want them to be xValue -> y
