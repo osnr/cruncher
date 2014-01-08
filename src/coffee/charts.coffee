@@ -113,18 +113,20 @@ addChart = (yMark, yFn) ->
         .attr('class', 'line')
         .attr('d', chart.line)
 
-    chart.dot = svg.selectAll('g.dot')
-        .data([{ x: Cr.scr.num, y: y }])
-    chart.dotG = chart.dot.enter().append('g')
-        .attr('class', 'dot')
-        .attr('transform', (d) ->
-            console.log d
-            'translate(' + (xScale d.x) + ',' +
-                (yScale d.y) + ')' )
-    chart.dotLabel = chart.dot.enter().append('text')
-        .text((d) -> '(' + d.x + ', ' + d.y + ')')
-    chart.dotPath = chart.dot.enter().append('path')
-        .attr('d', d3.svg.symbol())
+    chart.updateDot = (x, y) ->
+        chart.dotG?.remove()
+        chart.dotG = svg.append('g')
+            .datum({ x: x, y: y })
+            .attr('class', 'dot')
+            .attr('transform', (d) ->
+                'translate(' + (xScale d.x) + ',' +
+                    (yScale d.y) + ')' )
+        chart.dotG.append('text')
+            .text((d) -> '(' + d.x + ', ' + d.y + ')')
+        chart.dotG.append('path')
+            .attr('d', d3.svg.symbol())
+
+    chart.updateDot Cr.scr.num, y
 
 updateChart = (mark) ->
     range = mark.find()
@@ -158,8 +160,7 @@ updateChart = (mark) ->
         .ease('linear')
         .call(chart.yAxis)
 
-    chart.dot.data([])
-    chart.dot.data([{ x: Cr.scr.num, y: y }])
+    chart.updateDot Cr.scr.num, y
 
     chart.path.attr('d', chart.line)
         .attr('transform', 'translate(' + (chart.xScale xMin) +
