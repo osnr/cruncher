@@ -61,6 +61,10 @@ $ ->
         title = (if title.match(/\.[Cc][Rr]$/) then title else title + '.cr')
         saveAs blob, title
 
+    # ($ '.collaborate').click ->
+    #     TogetherJS @
+    #     false
+
     Cr.loadAutosave = ->
         data = localStorage['autosave']
         title = localStorage['autosave-title']

@@ -26,7 +26,7 @@ getData = (yFn, xMin, xMax) ->
     for x in [xMin..xMax] by delta
         y = yFn(x)
         continue if (isNaN y)
-        [x, yFn(x)]
+        [x, y]
 
 addChart = (yMark, yFn) ->
     yRange = yMark.find()
@@ -50,6 +50,7 @@ addChart = (yMark, yFn) ->
     g.charts[yMark] = chart = {}
 
     chart.origX = Cr.scr.num
+    console.log yMark, yFn
     chart.yFn = yFn
     y = yFn Cr.scr.num
 
@@ -112,9 +113,17 @@ addChart = (yMark, yFn) ->
         .attr('class', 'line')
         .attr('d', chart.line)
 
-    chart.dot = svg.append('path')
-        .attr('transform', 'translate(' + (xScale Cr.scr.num) +
-            ',' + (yScale y) + ')')
+    chart.dot = svg.selectAll('g.dot')
+        .data([{ x: Cr.scr.num, y: y }])
+    chart.dotG = chart.dot.enter().append('g')
+        .attr('class', 'dot')
+        .attr('transform', (d) ->
+            console.log d
+            'translate(' + (xScale d.x) + ',' +
+                (yScale d.y) + ')' )
+    chart.dotLabel = chart.dot.enter().append('text')
+        .text((d) -> '(' + d.x + ', ' + d.y + ')')
+    chart.dotPath = chart.dot.enter().append('path')
         .attr('d', d3.svg.symbol())
 
 updateChart = (mark) ->
@@ -149,9 +158,8 @@ updateChart = (mark) ->
         .ease('linear')
         .call(chart.yAxis)
 
-    chart.dot.attr('transform',
-        'translate(' + (chart.xScale Cr.scr.num) +
-            ',' + (chart.yScale y) + ')')
+    chart.dot.data([])
+    chart.dot.data([{ x: Cr.scr.num, y: y }])
 
     chart.path.attr('d', chart.line)
         .attr('transform', 'translate(' + (chart.xScale xMin) +

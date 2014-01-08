@@ -2,13 +2,13 @@ window.Cruncher = Cr = window.Cruncher || {}
 
 class Cr.NumberWidget
     constructor: (@value, @pos, @onLockChange) ->
-        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="icon-circle-blank"></i></a><a id="unlock"><i class="icon-cogs"></i></a></div>'
+        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="fa fa-circle-o"></i></a><a id="unlock"><i class="fa fa-cogs"></i></a></div>'
 
         @cid = Cr.getValueCid @value
         if @cid?
             @$numberWidget.find('#connect i')
-                .addClass('icon-circle')
-                .removeClass 'icon-circle-blank'
+                .addClass('fa-circle')
+                .removeClass 'fa-circle-o'
 
         if typeof value.num == 'function'
             # this is a free number
@@ -74,15 +74,15 @@ class Cr.NumberWidget
             @mark = Cr.markAsFree (Cr.valueFrom @value),
                 (Cr.valueTo @value)
 
-        ($ '#connect i.icon-circle-blank')
-            .removeClass('icon-circle-blank')
-            .addClass 'icon-circle-arrow-down'
+        ($ '#connect i.fa-circle-o')
+            .removeClass('fa-circle-o')
+            .addClass 'fa-arrow-circle-down'
 
         ($ '#unlock')
             .attr('id', 'lock')
             .find('i')
-                .removeClass('icon-cogs')
-                .addClass 'icon-edit-sign'
+                .removeClass('fa-cogs')
+                .addClass 'fa-pencil-square'
         @$numberWidget.addClass 'free-number-widget'
 
     unsetFreeNumber: ($target) =>
@@ -93,6 +93,6 @@ class Cr.NumberWidget
         ($ '#lock')
             .attr('id', 'unlock')
             .find('i')
-                .removeClass('icon-edit-sign')
-                .addClass 'icon-cogs'
+                .removeClass('fa-pencil-square')
+                .addClass 'fa-cogs'
         @$numberWidget.removeClass 'free-number-widget'

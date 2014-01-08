@@ -1,7 +1,7 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
 makeGutterMarker = (stateClass, iconClass, tooltip) ->
-    -> ($ '<i></i>')
+    -> ($ '<i class="fa"></i>')
         .addClass(stateClass)
         .addClass(iconClass)
         .attr('title', tooltip)
@@ -16,7 +16,7 @@ lineStates =
     parseError:
         gutterMarker:
             makeGutterMarker 'parse-error-icon',
-                'icon-question-sign',
+                'fa-question-sign',
                 'I can\'t understand this line.'
         bgClass: 'parse-error-line'
         wrapClass: 'parse-error'
@@ -24,16 +24,16 @@ lineStates =
     overDetermined:
         gutterMarker:
             makeGutterMarker 'over-determined-icon',
-                'icon-edit-sign',
-                'This line is entirely <span class="over-determined-locked">changeable numbers <i class="icon-edit-sign"></span></i>. I can\'t change anything to make the left and right side equal.'
+                'fa-edit-sign',
+                'This line is entirely <span class="over-determined-locked">changeable numbers <i class="fa fa-edit-sign"></span></i>. I can\'t change anything to make the left and right side equal.'
         bgClass: 'over-determined-line'
         wrapClass: 'over-determined'
 
     underDetermined:
         gutterMarker:
             makeGutterMarker 'under-determined-icon',
-                'icon-cogs',
-                'This line has too many <span class="under-determined-free">computer-controlled numbers <i class="icon-cogs"></i></span>! ' +
+                'fa-cogs',
+                'This line has too many <span class="under-determined-free">computer-controlled numbers <i class="fa fa-cogs"></i></span>! ' +
                 'I don\'t know how to solve it.'
         bgClass: 'under-determined-line'
         wrapClass: 'under-determined'

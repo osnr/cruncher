@@ -127,7 +127,7 @@ Cr.dependentsOn = (mark, seenMarks = []) ->
     if not mark.cid?
         cidMarks = (m for m in (Cr.editor.findMarksAt pos) \
             when m.cid?)
-        if cidMarks.length == 1
+        if cidMarks.length >= 1
             # throw out this base scrub-mark in favor
             # of one w/ connections
             mark = cidMarks[0]

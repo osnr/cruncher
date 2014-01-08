@@ -19,11 +19,14 @@
 	<script src="lib/js/Blob.js"></script>
 	<script src="lib/js/FileSaver.js"></script>
 
-	<link href="lib/css/font-awesome.css" rel="stylesheet"></link>
+	<link rel="stylesheet" href="lib/css/font-awesome.css"></link>
 
 	<!-- CodeMirror -->
 	<link rel="stylesheet" href="lib/css/codemirror.css">
 	<script src="lib/js/codemirror.js"></script>
+
+        <!-- TogetherJS -->
+        <script src="https://togetherjs.com/togetherjs-min.js"></script>
 
 	<!-- Cruncher -->
 	<link rel="stylesheet" href="bin/css/cruncher.css">
@@ -57,12 +60,13 @@
 		</div>
 
 		<div id="tool-buttons">
-		    <a title="New" class="new-doc btn btn-default"><i class="icon-file"></i></a>
+		    <a title="New" class="new-doc btn btn-default"><i class="fa fa-file"></i></a>
 		    <div class="btn-group">
-			<a title="Open from disk" class="open-doc btn btn-default"><i class="icon-folder-open"></i></a>
+			<a title="Open from disk" class="open-doc btn btn-default"><i class="fa fa-folder-open"></i></a>
 			<input type="file" id="file-chooser"></input>
-			<a title="Save to disk" class="save-doc btn btn-default"><i class="icon-save"></i></a>
+			<a title="Save to disk" class="save-doc btn btn-default"><i class="fa fa-save"></i></a>
 		    </div>
+		    <!-- <a title="Collaborate" class="collaborate btn btn-default"><i class="fa fa-users"></i></a> -->
 		</div>
 	    </div>
 	</div>
