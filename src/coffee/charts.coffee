@@ -122,7 +122,8 @@ addChart = (yMark, yFn) ->
                 'translate(' + (xScale d.x) + ',' +
                     (yScale d.y) + ')' )
         chart.dotG.append('text')
-            .text((d) -> '(' + d.x + ', ' + d.y + ')')
+            .text((d) -> '(' + (Cr.roundSig d.x) + ', ' +
+                (Cr.roundSig d.y) + ')')
         chart.dotG.append('path')
             .attr('d', d3.svg.symbol())
 
