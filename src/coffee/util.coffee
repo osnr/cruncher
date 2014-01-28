@@ -1,5 +1,11 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
+Cr.generateUid = () ->
+    arr = new Uint32Array(2)
+    window.crypto.getRandomValues arr
+
+    (arr[0].toString 36) + (arr[1].toString 36)
+
 Cr.sig = (text) ->
     sig = -1
 

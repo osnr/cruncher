@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-Cr.VERSION = '2013-11-10'
+Cr.VERSION = '2014-01-26'
 
 $ ->
     onEquals = (cm) ->
@@ -284,10 +284,18 @@ $ ->
         document.title = title + ' - Cruncher'
         ($ '#file-name').val title
 
-    Cr.swappedDoc = (title) ->
+    Cr.swappedDoc = (uid, title) ->
+        editor.doc.uid = uid
+        history.pushState {}, "", "?" + uid
+
         editor.doc.adjustments = []
         do Cr.forceEval
         setTitle title
+
+    Cr.newDoc = ->
+        editor.swapDoc (CodeMirror.Doc '', 'cruncher')
+        Cr.swappedDoc Cr.generateUid(), 'Untitled'
+        Cr.saveDoc editor.doc.uid
 
     ($ '#file-name').on 'change keyup paste', ->
         title = ($ @).val()
@@ -300,7 +308,12 @@ $ ->
 
         setTitle title
 
-    if not Cr.loadAutosave()
-        Cr.swappedDoc 'Untitled'
+    do ->
+        paramUid = window.location.search.substring 1
+        console.log paramUid
+        if paramUid == ""
+            Cr.newDoc()
+        else
+            Cr.loadDoc paramUid
 
     setInterval Cr.autosave, 5000

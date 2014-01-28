@@ -19,13 +19,15 @@ $ ->
     serializeDoc = ->
         JSON.stringify
             version: Cr.VERSION
+            uid: Cr.editor.doc.uid
+            title: Cr.editor.doc.title
             text: Cr.editor.getValue()
             marks: (m for m in (mark.toSerializable() \
                 for mark in Cr.editor.getAllMarks()) \
                     when m?)
             , null, 2
 
-    deserializeDoc = (data, title) ->
+    deserializeDoc = (data) ->
         data = JSON.parse data
         Cr.editor.swapDoc (CodeMirror.Doc data.text, 'cruncher')
 
@@ -33,11 +35,10 @@ $ ->
             newMark = Cr.editor.markText mark.from, mark.to, mark.options
             newMark.cid = mark.cid
 
-        Cr.swappedDoc title
+        Cr.swappedDoc data.uid, data.title
 
     ($ '.new-doc').click ->
-        Cr.editor.swapDoc (CodeMirror.Doc '', 'cruncher')
-        Cr.swappedDoc 'Untitled'
+        do Cr.newDoc
 
     ($ '.open-doc').click ->
         ($ '#file-chooser').click()
@@ -61,17 +62,19 @@ $ ->
         title = (if title.match(/\.[Cc][Rr]$/) then title else title + '.cr')
         saveAs blob, title
 
-    # ($ '.collaborate').click ->
-    #     TogetherJS @
-    #     false
+    Cr.loadDoc = (uid) ->
+        $.get 'http://cruncher-files.s3.amazonaws.com/' + uid, (data) ->
+            console.log 'loading', data
+            deserializeDoc data
 
-    Cr.loadAutosave = ->
-        data = localStorage['autosave']
-        title = localStorage['autosave-title']
-        return false unless data? and title?
-        deserializeDoc data, title
-        true
+    Cr.saveDoc = (uid) ->
+        do Cr.editor.doc.markClean
+        $.ajax 'http://cruncher-files.s3.amazonaws.com/' + uid,
+            type: 'PUT'
+            data: serializeDoc()
+            success: (data, status) -> console.log 'success', data, status
+            error: (xhr, status, error) -> console.log 'error', status, error
 
     Cr.autosave = ->
-        localStorage['autosave'] = serializeDoc()
-        localStorage['autosave-title'] = Cr.editor.doc.title
+        if not Cr.editor.doc.isClean()
+            Cr.saveDoc Cr.editor.doc.uid
