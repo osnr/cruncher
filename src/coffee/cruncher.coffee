@@ -292,10 +292,10 @@ $ ->
         do Cr.forceEval
         setTitle title
 
-    Cr.newDoc = ->
+    Cr.newDoc = (uid = Cr.generateUid()) ->
         editor.swapDoc (CodeMirror.Doc '', 'cruncher')
-        Cr.swappedDoc Cr.generateUid(), 'Untitled'
-        Cr.saveDoc editor.doc.uid
+        Cr.swappedDoc uid, 'Untitled'
+        Cr.saveDoc uid
 
     ($ '#file-name').on 'change keyup paste', ->
         title = ($ @).val()
@@ -312,7 +312,7 @@ $ ->
         paramUid = window.location.search.substring 1
         console.log paramUid
         if paramUid == ""
-            Cr.newDoc()
+            do Cr.newDoc
         else
             Cr.loadDoc paramUid
 

@@ -63,13 +63,14 @@ $ ->
         saveAs blob, title
 
     Cr.loadDoc = (uid) ->
-        $.get 'http://cruncher-files.s3.amazonaws.com/' + uid, (data) ->
-            console.log 'loading', data
+        ($.get 'https://cruncher-files.s3.amazonaws.com/' + uid, (data) ->
             deserializeDoc data
+        ).fail ->
+            do Cr.newDoc
 
     Cr.saveDoc = (uid) ->
         do Cr.editor.doc.markClean
-        $.ajax 'http://cruncher-files.s3.amazonaws.com/' + uid,
+        $.ajax 'https://cruncher-files.s3.amazonaws.com/' + uid,
             type: 'PUT'
             data: serializeDoc()
             success: (data, status) -> console.log 'success', data, status
