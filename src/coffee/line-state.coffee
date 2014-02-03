@@ -16,7 +16,7 @@ lineStates =
     parseError:
         gutterMarker:
             makeGutterMarker 'parse-error-icon',
-                'fa-question-sign',
+                'fa-question-circle',
                 'I can\'t understand this line.'
         bgClass: 'parse-error-line'
         wrapClass: 'parse-error'
@@ -24,8 +24,8 @@ lineStates =
     overDetermined:
         gutterMarker:
             makeGutterMarker 'over-determined-icon',
-                'fa-edit-sign',
-                'This line is entirely <span class="over-determined-locked">changeable numbers <i class="fa fa-edit-sign"></span></i>. I can\'t change anything to make the left and right side equal.'
+                'fa-pencil-square',
+                'This line is entirely <span class="over-determined-locked">human-controlled numbers <i class="fa fa-pencil-square"></span></i>.<br>I can\'t change anything to make the left and right side equal.'
         bgClass: 'over-determined-line'
         wrapClass: 'over-determined'
 

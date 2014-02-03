@@ -42,9 +42,9 @@ startDrag = (value) -> (downEvent) =>
     scr?.mark?.clear()
     ($ '.number-widget').remove()
     Cr.editor.eachLine (handle) ->
-       return unless handle.graph?
-       handle.graph.widget.clear()
-       delete handle.graph
+       return unless handle.g?
+       handle.g.widget.clear()
+       delete handle.g
 
     origin = Cr.editor.coordsChar
         left: downEvent.pageX
@@ -63,7 +63,10 @@ startDrag = (value) -> (downEvent) =>
 
     depts = Cr.dependentsOn scr.mark
     fns = Cr.functions value, depts
-    graphMarks = Cr.addCharts depts, fns
+
+    charting = true
+    if charting
+        chartMarks = Cr.addCharts depts, fns
     # TODO add graph
 
     xCenter = downEvent.pageX
@@ -88,7 +91,8 @@ startDrag = (value) -> (downEvent) =>
             scr.mark.replaceContents numString, '*scrubsolve'
             replaceDepts depts, fns, scr.num
 
-            Cr.updateCharts graphMarks
+            if charting
+                Cr.updateCharts chartMarks
 
     onDragUp = =>
         scr.mark.clear()
@@ -96,7 +100,8 @@ startDrag = (value) -> (downEvent) =>
         ($ document).off('mousemove.scrub')
             .off 'mouseup.scrub'
 
-        Cr.removeCharts()
+        if charting
+            Cr.removeCharts()
 
         # TODO remove this selection-restoring hack
         setTimeout (->

@@ -66,11 +66,32 @@
 			<input type="file" id="file-chooser"></input>
 			<a title="Save to disk" class="save-doc btn btn-default"><i class="fa fa-save"></i></a>
 		    </div>
+		    <a title="About" class="about btn btn-default"><i class="fa fa-info-circle"></i></a>
 		    <!-- <a title="Collaborate" class="collaborate btn btn-default"><i class="fa fa-users"></i></a> -->
 		</div>
 	    </div>
 	</div>
 	<textarea id="code" name="code"></textarea>
 	<div id="overlay"></div>
+        <div id="about" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Welcome to Cruncher</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Cruncher is a calculating notepad.</p>
+                        <p>The first rule of Cruncher is that <em>everything on the screen is true</em>.</p>
+                        <p><img src="res/fruits.gif"></img></p>
+                        <p>Cruncher has two kinds of numbers:</p>
+                        <ul>
+                            <li class="humans-numbers">human's numbers <i class="fa fa-pencil-square"></i></li>
+                            <li class="computers-numbers">computer's numbers <i class="fa fa-cogs"></i></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

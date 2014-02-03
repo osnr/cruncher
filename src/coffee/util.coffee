@@ -21,13 +21,19 @@ Cr.sig = (text) ->
 
     sig
 
+Cr.commafy = (num) ->
+    str = num.toString().split '.'
+    if str[0].length >= 4
+        str[0] = str[0].replace /(\d)(?=(\d{3})+$)/g, '$1,'
+    str.join '.'
+
 Cr.roundSig = (n, sig) ->
     n = Math.round(n * 1e5) / 1e5
 
     rnd = n.toString()
 
     if rnd == '-0' then '0'
-    else rnd
+    else Cr.commafy rnd
 
 Cr.inside = (a, b, c) ->
     (a.line <= b.line <= c.line) and (a.ch < b.ch < c.ch)

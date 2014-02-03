@@ -48,7 +48,7 @@ $ ->
         reader = new FileReader()
         reader.onload = ->
             try
-                deserializeDoc(reader.result, file.name)
+                deserializeDoc reader.result, file.name
             catch e
                 alert 'Error loading file.'
 

@@ -295,7 +295,6 @@ $ ->
     Cr.newDoc = (uid = Cr.generateUid()) ->
         editor.swapDoc (CodeMirror.Doc '', 'cruncher')
         Cr.swappedDoc uid, 'Untitled'
-        Cr.saveDoc uid
 
     ($ '#file-name').on 'change keyup paste', ->
         title = ($ @).val()
@@ -315,5 +314,12 @@ $ ->
             do Cr.newDoc
         else
             Cr.loadDoc paramUid
+
+    if not localStorage['dontIntro']
+        ($ '#about').modal('show')
+        localStorage['dontIntro'] = true
+
+    ($ '.about').click ->
+        ($ '#about').modal('show')
 
     setInterval Cr.autosave, 5000
