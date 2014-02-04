@@ -52,7 +52,7 @@ startDrag = (value) -> (downEvent) =>
     
     Cr.scr = scr = {}
 
-    scr.num = value.num
+    scr.origNum = scr.num = value.num
     scr.fixedDigits = value.numString().split('.')[1]?.length ? 0
 
     scr.mark = Cr.editor.markText (Cr.valueFrom value),
@@ -64,7 +64,7 @@ startDrag = (value) -> (downEvent) =>
     depts = Cr.dependentsOn scr.mark
     fns = Cr.functions value, depts
 
-    charting = true
+    charting = false
     if charting
         chartMarks = Cr.addCharts depts, fns
     # TODO add graph
@@ -78,14 +78,13 @@ startDrag = (value) -> (downEvent) =>
 
     onDragMove = (moveEvent) =>
         xOffset = moveEvent.pageX - xCenter
-        xCenter = moveEvent.pageX
 
-        scr.delta = xOffset / 5
+        scr.delta = Math.round (xOffset / 5)
 
-        if scr.delta != 0
+        if scr.delta != 0 and not isNaN(scr.delta)
             range = scr.mark.find()
 
-            scr.num += scr.delta
+            scr.num = scr.origNum + scr.delta
 
             numString = scr.num.toFixed scr.fixedDigits
             scr.mark.replaceContents numString, '*scrubsolve'

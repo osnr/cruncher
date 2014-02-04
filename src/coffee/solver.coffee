@@ -7,6 +7,7 @@ derivative = (f) ->
 Cr.newtonsMethod = newtonsMethod = (f, x, fp, numIters) ->
     fp = fp ? derivative f
     numIters = numIters ? 0
+
     if -dx < (f x) < dx
         x
     else if numIters > 1000
