@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-dx = 1e-9
+dx = 1e-7
 derivative = (f) ->
     (x) -> ((f (x + dx)) - (f x)) / dx
 

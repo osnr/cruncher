@@ -265,9 +265,9 @@ $ ->
                         (Cr.inside endRange.from, changeObj.to, endRange.to)
                    changeObj.cancel()
             else if (Cr.inside startRange.from, changeObj.from, startRange.to) and
-                    ((changeObj.text.length > 1) or not (/^[\-0-9\.]+$/.test changeObj.text[0]))
+                    ((changeObj.text.length > 1) or not (/^[\-0-9\.,]+$/.test changeObj.text[0]))
                 changeObj.cancel()
-            else if ((changeObj.text.length == 1) and (/^[\-0-9\.]+$/.test changeObj.text[0])) or
+            else if ((changeObj.text.length == 1) and (/^[\-0-9\.,]+$/.test changeObj.text[0])) or
                     (not changeObj.origin? and not (/^ = /.test changeObj.text[0]))
                 includeInMark startMark # (== endMark)
                         
