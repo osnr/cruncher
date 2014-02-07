@@ -1,5 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
+Cr.hover = hover =null
 Cr.scr = scr = null
 
 Cr.startHover = (enterEvent) ->
@@ -22,20 +23,36 @@ Cr.startHover = (enterEvent) ->
 
         hoverValue = Cr.nearestValue hoverPos
 
-    if hoverValue?
-        ($ '.hovering-number').removeClass 'hovering-number'
+    return if hoverValue == hover?.value or not hoverValue?
+    hover?.mark?.clear()
 
-        ($ '.number-widget').stop true
+    Cr.hover = hover =
+        pos: hoverPos
+        value: hoverValue
 
-        ($ this).addClass('hovering-number')
-            .not('.free-number')
-                .on 'mousedown.scrub', startDrag hoverValue
+    ($ '.number-widget').stop true
 
-        (new Cr.NumberWidget hoverValue,
-            hoverPos,
-            (line) -> Cr.evalLine line).show()
+    hover.mark = Cr.editor.markText (Cr.valueFrom hoverValue),
+        (Cr.valueTo hoverValue),
+        className: 'hovering-number'
+        inclusiveLeft: true # so mark survives replacement of its inside
+        inclusiveRight: true
 
-startDrag = (value) -> (downEvent) =>
+    ($ '.hovering-number')
+        .on('mouseleave', ->
+            hover.mark.clear() if not scr?
+            Cr.hover = hover = null)
+        .not('.free-number')
+            .on 'mousedown.scrub', (startDrag hover.value, hover.mark)
+
+    if enterEvent.ctrlKey or enterEvent.metaKey
+        Cr.addGraph hover.mark, Cr.dependentsOn hover.mark
+
+    (new Cr.NumberWidget hover.value,
+        hover.pos,
+        (line) -> Cr.evalLine line).show()
+
+startDrag = (value, mark) -> (downEvent) =>
     # initiate and handle dragging/scrubbing behavior
 
     ($ document).off('mousemove.scrub').off 'mouseup.scrub'
@@ -49,22 +66,18 @@ startDrag = (value) -> (downEvent) =>
     origin = Cr.editor.coordsChar
         left: downEvent.pageX
         top: downEvent.pageY
-    
+
     Cr.scr = scr = {}
 
     scr.origNum = scr.num = value.num
     scr.fixedDigits = value.numString().split('.')[1]?.length ? 0
 
-    scr.mark = Cr.editor.markText (Cr.valueFrom value),
-        (Cr.valueTo value),
-        className: 'dragging-number'
-        inclusiveLeft: true # so mark survives replacement of its inside
-        inclusiveRight: true
+    scr.mark = mark
 
     depts = Cr.dependentsOn scr.mark
     fns = Cr.functions value, depts
 
-    charting = false
+    charting = downEvent.altKey
     if charting
         chartMarks = Cr.addCharts depts, fns
     # TODO add graph

@@ -63,9 +63,13 @@ $ ->
         saveAs blob, title
 
     Cr.loadDoc = (uid) ->
+        ($ '#loading').fadeIn()
+    
         ($.get 'https://cruncher-files.s3.amazonaws.com/' + uid, (data) ->
+            ($ '#loading').fadeOut()
             deserializeDoc data
         ).fail ->
+            ($ '#loading').fadeOut()
             do Cr.newDoc
 
     Cr.saveDoc = (uid) ->

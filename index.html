@@ -21,8 +21,10 @@
 
 	<link rel="stylesheet" href="lib/css/font-awesome.css"></link>
 
+        <link rel="stylesheet" href="lib/css/keys.css"></link>
+
 	<!-- CodeMirror -->
-	<link rel="stylesheet" href="lib/css/codemirror.css">
+	<link rel="stylesheet" href="lib/css/codemirror.css"></link>
 	<script src="lib/js/codemirror.js"></script>
 
         <!-- TogetherJS -->
@@ -40,6 +42,7 @@
 	<script src="bin/js/line-state.js"></script>
 	<script src="bin/js/connect.js"></script>
 	<script src="bin/js/charts.js"></script>
+	<script src="bin/js/graphs.js"></script>
 	<script src="bin/js/docs.js"></script>
 	<script src="bin/js/cruncher.js"></script>
 
@@ -73,6 +76,12 @@
 	</div>
 	<textarea id="code" name="code"></textarea>
 	<div id="overlay"></div>
+        <div id="keys">
+            <ul>
+                <li><kbd>Cmd</kbd> see dependencies</li>
+                <li><kbd>Alt</kbd> make chart</li>
+            </ul>
+        </div>
         <div id="about" class="modal fade">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -93,5 +102,6 @@
                 </div>
             </div>
         </div>
+        <div id="loading"></div>
     </body>
 </html>

@@ -52,7 +52,7 @@ $ ->
             mark.inclusiveRight = incRights[mark]
 
         @
-    
+
     reparseLine = (line) ->
         text = editor.getLine line
         handle = editor.getLineHandle line

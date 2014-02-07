@@ -58,8 +58,10 @@ addChart = (yMark, yFn) ->
         .domain([Cr.scr.num - ampl, Cr.scr.num + ampl])
         .range([0, width])
     chart.yScale = yScale = d3.scale.linear()
-        .domain([y - ampl, y + ampl])
-        .range([height, 0])
+        .domain([
+            Math.min(yFn(Cr.scr.num - ampl), yFn(Cr.scr.num)),
+            Math.max(yFn(Cr.scr.num + ampl), yFn(Cr.scr.num))
+        ]).range([height, 0])
 
     chart.data = getData yFn, Cr.scr.num - ampl, Cr.scr.num + ampl
 
@@ -145,8 +147,8 @@ updateChart = (mark) ->
     chart.xScale.domain([xMin, xMax])
 
     yDomain = chart.yScale.domain()
-    yMin = Math.min yDomain[0], (chart.yFn xMin)
-    yMax = Math.max yDomain[1], (chart.yFn xMax)
+    yMin = Math.min yDomain[0], (chart.yFn xMin), (chart.yFn xMax)
+    yMax = Math.max yDomain[1], (chart.yFn xMax), (chart.yFn xMin)
     chart.yScale.domain([yMin, yMax])
 
     chart.data = getData chart.yFn, xMin, xMax

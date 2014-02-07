@@ -6,7 +6,7 @@ lastChange = {}
 
 coffee = ('src/coffee/' + s for s in \
     ['connect.coffee', 'cruncher.coffee', 'docs.coffee', 'charts.coffee',
-     'highlight.coffee', 'line-state.coffee', 'number-widget.coffee',
+     'graphs.coffee', 'highlight.coffee', 'line-state.coffee', 'number-widget.coffee',
      'scrubbing.coffee', 'solver.coffee', 'util.coffee', 'value.coffee'])
 jison = ['src/jison/parser.jison']
 less = ['src/less/cruncher.less']

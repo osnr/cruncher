@@ -15,6 +15,32 @@ body {
     color: @free-color;
 }
 
+#keys {
+    position: fixed;
+    right: 1em;
+    bottom: 1em;
+    opacity: 0.5;
+    text-align: right;
+}
+#keys ul {
+    list-style-type: none;
+    line-height: 2em;
+}
+
+#loading {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99;
+
+    background-image: url(../../res/ajax-loader.gif);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
 @toolbar-height: 54px;
 /* toolbar / title */
 #toolbar {
