@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-Cr.VERSION = '2014-01-26'
+Cr.VERSION = '2014-02-07'
 
 $ ->
     onEquals = (cm) ->
@@ -192,6 +192,7 @@ $ ->
         handle.evaluating = false
 
     editor.on 'change', (instance, changeObj) ->
+        console.log changeObj
         return if Cr.scr? # don't catch if scrubbing
 
         for adjustment in editor.doc.adjustments
@@ -210,7 +211,12 @@ $ ->
 
         # executes on user or cruncher change to text
         # (except during evalLine)
-        for line in [changeObj.from.line..changeObj.to.line + changeObj.text.length - 1]
+        if changeObj.removed.length > 1
+            lineRange = [changeObj.from.line..Cruncher.editor.lineCount() - 1]
+        else
+            lineRange = [changeObj.from.line..changeObj.to.line + changeObj.text.length - 1]
+
+        for line in lineRange
             handle = editor.getLineHandle line
             continue unless handle
 
@@ -237,6 +243,12 @@ $ ->
         editor.doc.adjustments.push ->
             mark.inclusiveLeft = false
             mark.inclusiveRight = false
+
+    editor.on 'beforeSelectionChange', (instance, selection) ->
+        return if not Cr.scr?
+
+        selection.head = editor.getCursor('head')
+        selection.anchor = editor.getCursor('anchor')
 
     editor.on 'beforeChange', (instance, changeObj) ->
         if changeObj.origin == '+delete' or Cr.scr?

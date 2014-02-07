@@ -74,11 +74,12 @@ Cr.updateSign = (line, handle) ->
     leftNum = handle.parsed.left.num
     rightNum = handle.parsed.right.num
 
-    if leftNum < rightNum
+    if Math.abs(leftNum - rightNum) < 1e-5
+        replacedWith = ($ '<span>&#8776;</span>')[0]
+    else if leftNum < rightNum
         replacedWith = ($ '<span>&lt;</span>')[0]
     else if leftNum > rightNum
         replacedWith = ($ '<span>&gt;</span>')[0]
-    else return
 
     handle.equalsMark = Cr.editor.markText {
         line: line

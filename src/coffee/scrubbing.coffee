@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-Cr.hover = hover =null
+Cr.hover = hover = null
 Cr.scr = scr = null
 
 Cr.startHover = (enterEvent) ->
@@ -24,12 +24,12 @@ Cr.startHover = (enterEvent) ->
         hoverValue = Cr.nearestValue hoverPos
 
     return if hoverValue == hover?.value or not hoverValue?
-    hover?.mark?.clear()
+    endHover()
 
     Cr.hover = hover =
         pos: hoverPos
         value: hoverValue
-
+    console.log hover.pos
     ($ '.number-widget').stop true
 
     hover.mark = Cr.editor.markText (Cr.valueFrom hoverValue),
@@ -38,19 +38,43 @@ Cr.startHover = (enterEvent) ->
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
 
-    ($ '.hovering-number')
-        .on('mouseleave', ->
-            hover.mark.clear() if not scr?
-            Cr.hover = hover = null)
+    ($ '.CodeMirror-code .hovering-number')
         .not('.free-number')
             .on 'mousedown.scrub', (startDrag hover.value, hover.mark)
 
+    ($ '#keys').stop(true, true).show()
+
     if enterEvent.ctrlKey or enterEvent.metaKey
         Cr.addGraph hover.mark, Cr.dependentsOn hover.mark
+    ($ document)
+        .on('mousemove.hover', (event) ->
+            endHover() unless ($ event.target).is('.hovering-number') \
+                or ($ event.target).closest('.number-widget').length > 0
+        ).on('mousedown', endHover)
+        .on('keydown.deps', (event) ->
+            return unless event.ctrlKey or event.metaKey
+            Cr.addGraph hover.mark, Cr.dependentsOn hover.mark
+        ).on('keyup.deps', (event) ->
+            console.log event
+            return unless event.which == 17 or event.which == 91 or event.which == 93 # ctrl, cmd key
+            Cr.removeGraph()
+        )
 
     (new Cr.NumberWidget hover.value,
         hover.pos,
         (line) -> Cr.evalLine line).show()
+
+endHover = ->
+    hover?.mark?.clear() if not scr?
+    Cr.hover = hover = null
+
+    ($ document).off('mousemove.hover keydown.deps keyup.deps')
+    Cr.removeGraph()
+
+    ($ '.number-widget').fadeOut 200, ->
+        ($ this).remove()
+
+    ($ '#keys').fadeOut()
 
 startDrag = (value, mark) -> (downEvent) =>
     # initiate and handle dragging/scrubbing behavior

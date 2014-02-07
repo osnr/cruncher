@@ -8,6 +8,7 @@
 [\s"$""%"]+              /* skip whitespace, units */
 ""+                    return 'FREE' /* horrible hack */
 [0-9\.\,]+               return 'NUMBER'
+"NaN"                    return 'NUMBER'
 "="                      return 'EQUALS'
 "*"                      return 'MUL'
 "/"                      return 'DIV'

@@ -9,7 +9,7 @@ Cr.generateUid = () ->
 Cr.sig = (text) ->
     sig = -1
 
-    numStrings = text.match /\d+(?:,\d+)*(?:\.\d*)?(?:[eE]-?\d+)?/g
+    numStrings = (text.match /\d+(?:,\d+)*(?:\.\d*)?(?:[eE]-?\d+)?/g) ? []
     for numString in numStrings
         if (numString.indexOf '.') != -1
             continue

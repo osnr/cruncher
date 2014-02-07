@@ -19,7 +19,6 @@ $ ->
     serializeDoc = ->
         JSON.stringify
             version: Cr.VERSION
-            uid: Cr.editor.doc.uid
             title: Cr.editor.doc.title
             text: Cr.editor.getValue()
             marks: (m for m in (mark.toSerializable() \
@@ -27,15 +26,16 @@ $ ->
                     when m?)
             , null, 2
 
-    deserializeDoc = (data) ->
+    deserializeDoc = (data, uid) ->
         data = JSON.parse data
+        uid = uid ? Cr.editor.doc.uid # reuse old UID if necessary
         Cr.editor.swapDoc (CodeMirror.Doc data.text, 'cruncher')
 
         for mark in data.marks
             newMark = Cr.editor.markText mark.from, mark.to, mark.options
             newMark.cid = mark.cid
 
-        Cr.swappedDoc data.uid, data.title
+        Cr.swappedDoc uid, data.title
 
     ($ '.new-doc').click ->
         do Cr.newDoc
@@ -48,11 +48,12 @@ $ ->
         reader = new FileReader()
         reader.onload = ->
             try
-                deserializeDoc reader.result, file.name
+                deserializeDoc reader.result
             catch e
                 alert 'Error loading file.'
 
         reader.readAsText file
+        this.value = null
 
     ($ '.save-doc').click ->
         blob = new Blob([serializeDoc()],
@@ -67,10 +68,10 @@ $ ->
     
         ($.get 'https://cruncher-files.s3.amazonaws.com/' + uid, (data) ->
             ($ '#loading').fadeOut()
-            deserializeDoc data
+            deserializeDoc data, uid
         ).fail ->
             ($ '#loading').fadeOut()
-            do Cr.newDoc
+            Cr.newDoc uid
 
     Cr.saveDoc = (uid) ->
         do Cr.editor.doc.markClean

@@ -23,8 +23,7 @@ class Cr.NumberWidget
             ch: @value.start,
             @$numberWidget[0]
 
-        @$number = $ '.hovering-number'
-        @$number.mouseleave @endHover
+        @$number = $ '.CodeMirror-code .hovering-number'
 
         offset = @$number.offset()
         @$numberWidget #.width(($ this).width())
@@ -32,12 +31,9 @@ class Cr.NumberWidget
                 top: offset.top + @$number.height() + 1
                 left: offset.left - 3
             .mouseenter =>
-                @$number.off 'mouseleave'
-
                 @$numberWidget
                     .stop(true)
                     .animate(opacity: 100)
-                    .mouseleave @endHover
             
             .on 'click', '#unlock', =>
                 @setFreeNumber()
@@ -60,14 +56,7 @@ class Cr.NumberWidget
                     (toCoords.left + fromCoords.left) / 2,
                     (fromCoords.bottom + fromCoords.top) / 2
 
-                @endHover()
-
         @setFreeNumber ($ '#unlock') if @mark?
-
-    endHover: =>
-        @$numberWidget.fadeOut 200, =>
-            @$number.removeClass 'hovering-number'
-            @$numberWidget.remove()
 
     setFreeNumber: ($target) =>
         if not @mark?
