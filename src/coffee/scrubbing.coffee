@@ -50,8 +50,10 @@ Cr.startHover = (enterEvent) ->
         .on('mousemove.hover', (event) ->
             endHover() unless ($ event.target).is('.hovering-number') \
                 or ($ event.target).closest('.number-widget').length > 0
-        ).on('mousedown', endHover)
-        .on('keydown.deps', (event) ->
+        ).on('mousedown', (event) ->
+            return if ($ event.target).closest('.number-widget').length > 0
+            endHover()
+        ).on('keydown.deps', (event) ->
             return unless event.ctrlKey or event.metaKey
             Cr.addGraph hover.mark, Cr.dependentsOn hover.mark
         ).on('keyup.deps', (event) ->

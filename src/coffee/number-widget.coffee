@@ -2,7 +2,7 @@ window.Cruncher = Cr = window.Cruncher || {}
 
 class Cr.NumberWidget
     constructor: (@value, @pos, @onLockChange) ->
-        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="fa fa-circle-o"></i></a><a id="unlock"><i class="fa fa-cogs"></i></a></div>'
+        @$numberWidget = $ '<div class="number-widget"><a id="connect"><i class="fa fa-circle-o"></i></a><a id="unlock"><i class="fa fa-pencil-square"></i></a></div>'
 
         @cid = Cr.getValueCid @value
         if @cid?
@@ -70,8 +70,8 @@ class Cr.NumberWidget
         ($ '#unlock')
             .attr('id', 'lock')
             .find('i')
-                .removeClass('fa-cogs')
-                .addClass 'fa-pencil-square'
+                .removeClass('fa-pencil-square')
+                .addClass 'fa-cogs'
         @$numberWidget.addClass 'free-number-widget'
 
     unsetFreeNumber: ($target) =>
@@ -82,6 +82,6 @@ class Cr.NumberWidget
         ($ '#lock')
             .attr('id', 'unlock')
             .find('i')
-                .removeClass('fa-pencil-square')
-                .addClass 'fa-cogs'
+                .removeClass('fa-cogs')
+                .addClass 'fa-pencil-square'
         @$numberWidget.removeClass 'free-number-widget'
