@@ -21,12 +21,23 @@ width = 100
 height = 100
 ampl = 10
 scaleSide = 0.1
-delta = 0.05
+delta = 1
 getData = (yFn, xMin, xMax) ->
+    data = []
+    yMin = Number.MAX_VALUE
+    yMax = Number.MIN_VALUE
+
     for x in [xMin..xMax] by delta
         y = yFn(x)
         continue if (isNaN y)
-        [x, y]
+
+        if y < yMin then yMin = y
+        if y > yMax then yMax = y
+        data.push [x, y]
+
+    data: data
+    yMin: yMin
+    yMax: yMax
 
 addChart = (yMark, yFn) ->
     yRange = yMark.find()
@@ -50,20 +61,21 @@ addChart = (yMark, yFn) ->
     g.charts[yMark] = chart = {}
 
     chart.origX = Cr.scr.num
-    console.log yMark, yFn
     chart.yFn = yFn
     y = yFn Cr.scr.num
 
+    xMin = Cr.scr.num - ampl
+    xMax = Cr.scr.num + ampl
+
+    {data, yMin, yMax} = getData yFn, xMin, xMax
+    chart.data = data
+
     chart.xScale = xScale = d3.scale.linear()
-        .domain([Cr.scr.num - ampl, Cr.scr.num + ampl])
+        .domain([xMin, xMax])
         .range([0, width])
     chart.yScale = yScale = d3.scale.linear()
-        .domain([
-            Math.min(yFn(Cr.scr.num - ampl), yFn(Cr.scr.num)),
-            Math.max(yFn(Cr.scr.num + ampl), yFn(Cr.scr.num))
-        ]).range([height, 0])
-
-    chart.data = getData yFn, Cr.scr.num - ampl, Cr.scr.num + ampl
+        .domain([yMin, yMax])
+        .range([height, 0])
 
     $xMark = ($ '.' + Cr.scr.mark.className).last()
     $yMark = ($ '.' + yMark.className).last()
@@ -146,13 +158,14 @@ updateChart = (mark) ->
     xMax = Math.max xDomain[1], Cr.scr.num + ampl
     chart.xScale.domain([xMin, xMax])
 
-    yDomain = chart.yScale.domain()
-    yMin = Math.min yDomain[0], (chart.yFn xMin), (chart.yFn xMax)
-    yMax = Math.max yDomain[1], (chart.yFn xMax), (chart.yFn xMin)
-    chart.yScale.domain([yMin, yMax])
-
-    chart.data = getData chart.yFn, xMin, xMax
+    {data, yMin, yMax} = getData chart.yFn, xMin, xMax
+    chart.data = data
     chart.path.datum chart.data
+
+    yDomain = chart.yScale.domain()
+    yMin = Math.min yDomain[0], yMin
+    yMax = Math.max yDomain[1], yMax
+    chart.yScale.domain([yMin, yMax])
 
     chart.xAxisG.transition()
         .duration(100)
