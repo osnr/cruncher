@@ -71,10 +71,9 @@ endHover = ->
     ($ document).off('mousemove.hover keydown.deps keyup.deps')
     Cr.removeGraph()
 
-    ($ '.number-widget').fadeOut 200, ->
-        ($ this).remove()
+    ($ '.number-widget').remove()
 
-    ($ '#keys').fadeOut()
+    ($ '#keys').hide()
 
 startDrag = (value, mark) -> (downEvent) =>
     # initiate and handle dragging/scrubbing behavior

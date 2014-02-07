@@ -28,7 +28,7 @@ class Cr.NumberWidget
         offset = @$number.offset()
         @$numberWidget #.width(($ this).width())
             .offset
-                top: offset.top + @$number.height() + 1
+                top: offset.top + @$number.height()
                 left: offset.left - 3
             .mouseenter =>
                 @$numberWidget

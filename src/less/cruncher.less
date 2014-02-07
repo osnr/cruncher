@@ -17,14 +17,25 @@ body {
 
 #keys {
     position: fixed;
-    right: 1em;
+    right: 1.5em;
     bottom: 1em;
     opacity: 0.5;
     text-align: right;
+    pointer-events: none;
+    background-color: #eaeaea;
+
+    padding-right: 1em;
+    padding-left: 1em;
+    padding-top: 0.5em;
+    padding-bottom: 0.3em;
 }
-#keys ul {
-    list-style-type: none;
-    line-height: 2em;
+#keys .left {
+    float: left;
+}
+#keys .right {
+    margin-left: 0.5em;
+    text-align: left;
+    float: right;
 }
 
 #loading {
@@ -142,9 +153,6 @@ body {
     color: @hover-color;
     border-bottom: 1px dashed @hover-color;
 }
-.cm-s-cruncher .dragging-number {
-    color: @hover-color;
-}
 @free-color: #f52f6a;
 .cm-s-cruncher .free-number {
     color: @free-color;
@@ -185,6 +193,7 @@ body {
     color: #214D70;
     line-height: 1em;
     z-index: 6;
+    padding-top: 1px;
 }
 .number-widget a {
     margin: 2px;
