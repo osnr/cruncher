@@ -164,7 +164,6 @@ $ ->
 
         else if parsed?.constructor == Cr.Equation
             try
-                console.log parsed
                 [freeValue, solution] = parsed.solve()
 
                 mark = (s.marker for s in Cr.getFreeMarkedSpans line)[0]
@@ -192,7 +191,6 @@ $ ->
         handle.evaluating = false
 
     editor.on 'change', (instance, changeObj) ->
-        console.log changeObj
         return if Cr.scr? # don't catch if scrubbing
 
         for adjustment in editor.doc.adjustments

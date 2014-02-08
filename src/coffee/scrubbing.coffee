@@ -29,8 +29,6 @@ Cr.startHover = (enterEvent) ->
     Cr.hover = hover =
         pos: hoverPos
         value: hoverValue
-    console.log hover.pos
-    ($ '.number-widget').stop true
 
     hover.mark = Cr.editor.markText (Cr.valueFrom hoverValue),
         (Cr.valueTo hoverValue),
@@ -57,7 +55,6 @@ Cr.startHover = (enterEvent) ->
             return unless event.ctrlKey or event.metaKey
             Cr.addGraph hover.mark, Cr.dependentsOn hover.mark
         ).on('keyup.deps', (event) ->
-            console.log event
             return unless event.which == 17 or event.which == 91 or event.which == 93 # ctrl, cmd key
             Cr.removeGraph()
         )

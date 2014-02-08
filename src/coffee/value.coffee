@@ -32,9 +32,9 @@ class Cr.Equation
                         (x) -> side.num
 
             try
-                solution = Cr.newtonsMethod ((x) ->
+                solution = Cr.findRoot ((x) ->
                         (leftF x) - (rightF x)),
-                        1
+                        -1, 1
                 return [freeValues[0], solution]
 
             catch e
