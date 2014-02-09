@@ -1,7 +1,7 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-makeGutterMarker = (stateClass, iconClass, tooltip) ->
-    -> ($ '<i class="fa"></i>')
+makeGutterMarker = (stateClass, iconClass, tooltip) -> ->
+    ($ '<i class="fa"></i>')
         .addClass(stateClass)
         .addClass(iconClass)
         .attr('title', tooltip)
