@@ -319,9 +319,11 @@ $ ->
 
     do ->
         paramUid = window.location.search.substring 1
-        console.log paramUid
-        if paramUid == ""
+
+        if paramUid == ''
             do Cr.newDoc
+        else if paramUid.substring(0, 'examples/'.length) == 'examples/'
+            Cr.loadExample (paramUid.substring 'examples/'.length)
         else
             Cr.loadDoc paramUid
 

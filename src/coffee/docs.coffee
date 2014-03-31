@@ -63,6 +63,16 @@ $ ->
         title = (if title.match(/\.[Cc][Rr]$/) then title else title + '.cr')
         saveAs blob, title
 
+    Cr.loadExample = (tid) ->
+        ($ '#loading').fadeIn()
+    
+        ($.get 'https://cruncher-examples.s3.amazonaws.com/' + tid, (data) ->
+            ($ '#loading').fadeOut()
+            deserializeDoc data, Cr.generateUid()
+        ).fail ->
+            ($ '#loading').fadeOut()
+            do Cr.newDoc
+
     Cr.loadDoc = (uid) ->
         ($ '#loading').fadeIn()
     
