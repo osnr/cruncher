@@ -23,6 +23,8 @@
 
         <link rel="stylesheet" href="lib/css/keys.css"></link>
 
+        <script src="//www.parsecdn.com/js/parse-1.3.0.min.js"></script>
+
 	<!-- CodeMirror -->
 	<link rel="stylesheet" href="lib/css/codemirror.css"></link>
 	<script src="lib/js/codemirror.js"></script>
@@ -65,10 +67,11 @@
 		<div id="tool-buttons">
 		    <a title="New" class="new-doc btn btn-default"><i class="fa fa-file"></i></a>
 		    <div class="btn-group">
-			<a title="Open from disk" class="open-doc btn btn-default"><i class="fa fa-folder-open"></i></a>
+			<a title="Import from disk" class="import-doc btn btn-default"><i class="fa fa-cloud-upload"></i></a>
 			<input type="file" id="file-chooser"></input>
-			<a title="Save to disk" class="save-doc btn btn-default"><i class="fa fa-save"></i></a>
+			<a title="Export to disk" class="export-doc btn btn-default"><i class="fa fa-cloud-download"></i></a>
 		    </div>
+                    <a title="Save to link" class="save-doc btn btn-default"><i class="fa fa-floppy-o"></i></a>
 		    <a title="About" class="about btn btn-default"><i class="fa fa-info-circle"></i></a>
 		    <!-- <a title="Collaborate" class="collaborate btn btn-default"><i class="fa fa-users"></i></a> -->
 		</div>

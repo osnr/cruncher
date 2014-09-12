@@ -16,6 +16,10 @@ CodeMirror.TextMarker::toSerializable = ->
         atomic: @atomic
 
 $ ->
+    Parse.initialize("m1vgRwDNCkaGLUgVcHu0awPVj6rMCN709dGSZpJu",
+        "mlx5yORpt3sIK3mqaX3eW4lhtimn9KQZDJkxJJNK")
+    Doc = Parse.Object.extend("Doc")
+
     serializeDoc = ->
         JSON.stringify
             version: Cr.VERSION
@@ -40,7 +44,7 @@ $ ->
     ($ '.new-doc').click ->
         do Cr.newDoc
 
-    ($ '.open-doc').click ->
+    ($ '.import-doc').click ->
         ($ '#file-chooser').click()
 
     ($ '#file-chooser').change (event) ->
@@ -55,7 +59,7 @@ $ ->
         reader.readAsText file
         this.value = null
 
-    ($ '.save-doc').click ->
+    ($ '.export-doc').click ->
         blob = new Blob([serializeDoc()],
             type: 'text/plain; charset=utf-8'
         )
@@ -63,19 +67,23 @@ $ ->
         title = (if title.match(/\.[Cc][Rr]$/) then title else title + '.cr')
         saveAs blob, title
 
-    Cr.loadExample = (tid) ->
-        ($ '#loading').fadeIn()
-    
-        ($.get 'https://cruncher-examples.s3.amazonaws.com/' + tid, (data) ->
-            ($ '#loading').fadeOut()
-            deserializeDoc data, Cr.generateUid()
-        ).fail ->
-            ($ '#loading').fadeOut()
-            do Cr.newDoc
+    ($ '.save-doc').click ->
+        Cr.saveDoc Cr.editor.doc.uid
 
     Cr.loadDoc = (uid) ->
         ($ '#loading').fadeIn()
-    
+
+        query = new Parse.Query(Doc)
+        query.get uid,
+            success: (doc) ->
+                ($ '#loading').fadeOut()
+                deserializeDoc doc.get('data'), uid
+
+            error: (doc, error) ->
+                ($ '#loading').fadeOut()
+                doc = new Doc()
+                Cr.newDoc uid
+
         ($.get 'https://cruncher-files.s3.amazonaws.com/' + uid, (data) ->
             ($ '#loading').fadeOut()
             deserializeDoc data, uid
@@ -84,12 +92,14 @@ $ ->
             Cr.newDoc uid
 
     Cr.saveDoc = (uid) ->
+        doc = new Doc()
+        doc.id = uid
+        doc.set('data', serializeDoc())
+
         do Cr.editor.doc.markClean
-        $.ajax 'https://cruncher-files.s3.amazonaws.com/' + uid,
-            type: 'PUT'
-            data: serializeDoc()
-            success: (data, status) -> console.log 'success', data, status
-            error: (xhr, status, error) -> console.log 'error', status, error
+        doc.save null,
+            success: (doc) -> console.log 'success', doc
+            error: (doc, error) -> console.log 'error', doc, error
 
     Cr.autosave = ->
         if not Cr.editor.doc.isClean()

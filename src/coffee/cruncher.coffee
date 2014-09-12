@@ -296,13 +296,13 @@ $ ->
 
     Cr.swappedDoc = (uid, title) ->
         editor.doc.uid = uid
-        history.pushState {}, "", "?" + uid
+        history.replaceState {}, "", "?/" + uid
 
         editor.doc.adjustments = []
         do Cr.forceEval
         setTitle title
 
-    Cr.newDoc = (uid = Cr.generateUid()) ->
+    Cr.newDoc = () ->
         editor.swapDoc (CodeMirror.Doc '', 'cruncher')
         Cr.swappedDoc uid, 'Untitled'
 
