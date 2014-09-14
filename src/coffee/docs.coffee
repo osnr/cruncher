@@ -70,6 +70,12 @@ $ ->
     ($ '.save-doc').click ->
         Cr.saveDoc Cr.editor.doc.uid
 
+    Cr.loadView = (uid) ->
+        
+
+    Cr.loadEmbed = (uid) ->
+
+
     Cr.loadDoc = (uid) ->
         ($ '#loading').fadeIn()
 
@@ -81,26 +87,19 @@ $ ->
 
             error: (doc, error) ->
                 ($ '#loading').fadeOut()
-                doc = new Doc()
-                Cr.newDoc uid
-
-        ($.get 'https://cruncher-files.s3.amazonaws.com/' + uid, (data) ->
-            ($ '#loading').fadeOut()
-            deserializeDoc data, uid
-        ).fail ->
-            ($ '#loading').fadeOut()
-            Cr.newDoc uid
+                Cr.newDoc()
 
     Cr.saveDoc = (uid) ->
         doc = new Doc()
         doc.id = uid
         doc.set('data', serializeDoc())
 
-        do Cr.editor.doc.markClean
         doc.save null,
-            success: (doc) -> console.log 'success', doc
-            error: (doc, error) -> console.log 'error', doc, error
+            success: (doc) ->
+                Cr.editor.doc.uid = doc.id
+                history.replaceState {}, "", "?/" + doc.id
+                console.log 'success', doc
 
-    Cr.autosave = ->
-        if not Cr.editor.doc.isClean()
-            Cr.saveDoc Cr.editor.doc.uid
+                Cr.markClean()
+
+            error: (doc, error) -> console.log 'error', doc, error

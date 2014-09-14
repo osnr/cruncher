@@ -72,9 +72,9 @@ $ ->
                 handle.parsed = parsed
             else
                 handle.parsed = null
-            
+
             Cr.unsetLineState line, 'parseError'
-            
+
         catch e
             console.log 'parse error', e, line, textToParse
             handle.parsed = null
@@ -85,9 +85,6 @@ $ ->
             while (not firstToken) and (i < text.length)
                 firstToken = Cr.editor.getTokenTypeAt { line: line, ch: i }
                 i += 1
-            if firstToken == 'equals'
-                # wipe out the line, they probably deleted the entire left half
-                editor.setLine line, ''
 
     Cr.markAsFree = markAsFree = (from, to) ->
         editor.markText from, to,
@@ -193,6 +190,8 @@ $ ->
     editor.on 'change', (instance, changeObj) ->
         return if Cr.scr? # don't catch if scrubbing
 
+        setTitle editor.doc.title # mark unsaved in title
+
         for adjustment in editor.doc.adjustments
             do adjustment
         editor.doc.adjustments = []
@@ -291,20 +290,25 @@ $ ->
 
     setTitle = (title) ->
         editor.doc.title = title
-        document.title = title + ' - Cruncher'
+        document.title = (if editor.doc.isClean() then '' else '(UNSAVED) ') +
+            title + ' - Cruncher'
         ($ '#file-name').val title
+
+    Cr.markClean = ->
+        editor.doc.markClean()
+        setTitle editor.doc.title
 
     Cr.swappedDoc = (uid, title) ->
         editor.doc.uid = uid
-        history.replaceState {}, "", "?/" + uid
+        history.replaceState {}, "", if uid? then "?/" + uid else ""
 
         editor.doc.adjustments = []
         do Cr.forceEval
         setTitle title
 
-    Cr.newDoc = () ->
+    Cr.newDoc = ->
         editor.swapDoc (CodeMirror.Doc '', 'cruncher')
-        Cr.swappedDoc uid, 'Untitled'
+        Cr.swappedDoc null, 'Untitled'
 
     ($ '#file-name').on 'change keyup paste', ->
         title = ($ @).val()
@@ -318,12 +322,10 @@ $ ->
         setTitle title
 
     do ->
-        paramUid = window.location.search.substring 1
+        paramUid = window.location.search.substring 2
 
         if paramUid == ''
             do Cr.newDoc
-        else if paramUid.substring(0, 'examples/'.length) == 'examples/'
-            Cr.loadExample (paramUid.substring 'examples/'.length)
         else
             Cr.loadDoc paramUid
 
@@ -334,4 +336,3 @@ $ ->
     ($ '.about').click ->
         ($ '#about').modal('show')
 
-    setInterval Cr.autosave, 5000
