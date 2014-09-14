@@ -298,9 +298,21 @@ $ ->
         editor.doc.markClean()
         setTitle editor.doc.title
 
-    Cr.swappedDoc = (uid, title) ->
-        editor.doc.uid = uid
-        history.replaceState {}, "", if uid? then "?/" + uid else ""
+    Cr.swappedDoc = (uid, title, mode) ->
+        if mode == 'edit'
+            ($ '#toolbar').show()
+            ($ '#container').removeClass('embed')
+            editor.doc.uid = uid
+            history.replaceState {}, "", if uid? then "?/" + uid else ""
+        else if mode == 'view'
+            ($ '#toolbar').show()
+            ($ '#container').removeClass('embed')
+            history.replaceState {}, "", "?/view/" + uid
+        else if mode == 'embed'
+            ($ '#toolbar').hide()
+            ($ '#container').addClass('embed')
+            history.replaceState {}, "", "?/embed/" + uid
+        editor.refresh()
 
         editor.doc.adjustments = []
         do Cr.forceEval
@@ -326,6 +338,14 @@ $ ->
 
         if paramUid == ''
             do Cr.newDoc
+        else if paramUid.substring(0, 'view/'.length) == 'view/'
+            viewid = paramUid.substring 'view/'.length
+            Cr.loadView viewid
+        else if paramUid.substring(0, 'embed/'.length) == 'embed/'
+            ($ '#toolbar').hide()
+            ($ '#container').addClass('embed')
+            viewid = paramUid.substring 'embed/'.length
+            Cr.loadEmbed viewid
         else
             Cr.loadDoc paramUid
 

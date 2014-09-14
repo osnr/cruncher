@@ -104,33 +104,38 @@ body {
 }
 
 /* CodeMirror theme */
-.cm-s-cruncher.CodeMirror {
+#container {
     position: fixed;
 
     top: @toolbar-height;
     bottom: 0;
     left: 0;
     right: 0;
+}
+/* from https://groups.google.com/forum/#!topic/codemirror/nmeqV2AHB_g */
+.CodeMirror * {
+    box-sizing: content-box;
+    -moz-box-sizing: content-box;
+    -ms-box-sizing: content-box;
+    -webkit-box-sizing:content-box;
+}
 
+.cm-s-cruncher.CodeMirror {
+    width: 100%;
     height: 100%;
+
     font-family: Lucida Sans Unicode, Lucida Grande, sans-serif;
     font-size: 14px;
     line-height: 28px;
     -moz-user-select: none;
     -webkit-user-select: none;
 }
-.cm-s-cruncher .CodeMirror-scroll {
-    overflow-y: hidden;
-    overflow-x: auto;
+.cm-s-cruncher.CodeMirror.embed {
+    top: 0;
 }
-.CodeMirror-sizer {
-    margin-bottom: 20px;
-}
+
 .CodeMirror-linenumber {
     min-width: 30px;
-}
-.cm-s-cruncher .CodeMirror-cursor {
-    height: 18px;
 }
 .cm-s-cruncher .CodeMirror-lines pre {
     color: gray;

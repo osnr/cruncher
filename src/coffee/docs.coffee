@@ -19,6 +19,7 @@ $ ->
     Parse.initialize("m1vgRwDNCkaGLUgVcHu0awPVj6rMCN709dGSZpJu",
         "mlx5yORpt3sIK3mqaX3eW4lhtimn9KQZDJkxJJNK")
     Doc = Parse.Object.extend("Doc")
+    PublishDoc = Parse.Object.extend("PublishDoc")
 
     serializeDoc = ->
         JSON.stringify
@@ -30,7 +31,7 @@ $ ->
                     when m?)
             , null, 2
 
-    deserializeDoc = (data, uid) ->
+    deserializeDoc = (data, uid, mode = 'edit') ->
         data = JSON.parse data
         uid = uid ? Cr.editor.doc.uid # reuse old UID if necessary
         Cr.editor.swapDoc (CodeMirror.Doc data.text, 'cruncher')
@@ -39,7 +40,7 @@ $ ->
             newMark = Cr.editor.markText mark.from, mark.to, mark.options
             newMark.cid = mark.cid
 
-        Cr.swappedDoc uid, data.title
+        Cr.swappedDoc uid, data.title, mode
 
     ($ '.new-doc').click ->
         do Cr.newDoc
@@ -70,11 +71,26 @@ $ ->
     ($ '.save-doc').click ->
         Cr.saveDoc Cr.editor.doc.uid
 
-    Cr.loadView = (uid) ->
-        
+    ($ '.publish-doc').click ->
+        Cr.publishDoc Cr.editor.doc.uid
 
-    Cr.loadEmbed = (uid) ->
+    Cr.loadView = (viewid) ->
+        Parse.Cloud.run "getPublish", { publishId: viewid },
+            success: (response) ->
+                deserializeDoc response.data, viewid, 'view'
 
+            error: (response, error) ->
+                alert 'Failed to load published document: ' + error 
+                Cr.newDoc()
+
+    Cr.loadEmbed = (viewid) ->
+        Parse.Cloud.run "getPublish", { publishId: viewid },
+            success: (response) ->
+                deserializeDoc response.data, viewid, 'embed'
+
+            error: (response, error) ->
+                alert 'Failed to load published document: ' + error
+                Cr.newDoc()
 
     Cr.loadDoc = (uid) ->
         ($ '#loading').fadeIn()
@@ -103,3 +119,16 @@ $ ->
                 Cr.markClean()
 
             error: (doc, error) -> console.log 'error', doc, error
+
+    Cr.publishDoc = (uid) ->
+        if not uid?
+            alert 'You need to save to a link before publishing.'
+            return
+
+        Parse.Cloud.run "publish", { saveId: uid, data: serializeDoc() },
+            success: (response) ->
+                url =  window.location.href.match(/(^[^\?]*)/)[1] + '?/view/' + response.publishId
+                console.log 'published', response, url
+
+            error: (response, error) ->
+                console.log 'error', response, error
