@@ -72,7 +72,22 @@ $ ->
         Cr.saveDoc Cr.editor.doc.uid
 
     ($ '.publish-doc').click ->
-        Cr.publishDoc Cr.editor.doc.uid
+        if not Cr.editor.doc.uid?
+            alert 'You need to save to a link before publishing.'
+            return
+
+        ($ '#publish').modal('show')
+
+    ($ '.do-publish').click ->
+        Cr.publishDoc Cr.editor.doc.uid,
+            success: (publishId) ->
+                baseUrl = window.location.href.match(/(^[^\?]*)/)[1]
+                viewUrl = baseUrl + '?/view/' + publishId
+                embedUrl = baseUrl + '?/embed/' + publishId
+
+                ($ '.view-url').val viewUrl
+                ($ '.embed-code').val '<iframe src="' + embedUrl + '"></iframe>'
+                ($ '.embed-preview').attr 'src', embedUrl
 
     Cr.loadView = (viewid) ->
         Parse.Cloud.run "getPublish", { publishId: viewid },
@@ -83,7 +98,7 @@ $ ->
                 alert 'Failed to load published document: ' + error 
                 Cr.newDoc()
 
-    Cr.loadEmbed = (viewid) ->
+    Cr.loadEmbed = (viewid) -> # FIXME merge with loadView
         Parse.Cloud.run "getPublish", { publishId: viewid },
             success: (response) ->
                 deserializeDoc response.data, viewid, 'embed'
@@ -120,15 +135,12 @@ $ ->
 
             error: (doc, error) -> console.log 'error', doc, error
 
-    Cr.publishDoc = (uid) ->
-        if not uid?
-            alert 'You need to save to a link before publishing.'
-            return
-
+    Cr.publishDoc = (uid, callbacks) ->
         Parse.Cloud.run "publish", { saveId: uid, data: serializeDoc() },
             success: (response) ->
-                url =  window.location.href.match(/(^[^\?]*)/)[1] + '?/view/' + response.publishId
-                console.log 'published', response, url
+                callbacks.success response.publishId
+                console.log 'published', response
 
             error: (response, error) ->
+                callbacks.error response, error
                 console.log 'error', response, error

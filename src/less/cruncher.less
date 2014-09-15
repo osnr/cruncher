@@ -112,6 +112,17 @@ body {
     left: 0;
     right: 0;
 }
+#container.embed {
+    top: 0;
+}
+
+.embed-preview {
+    height: 100%;
+    width: 100%;
+}
+.embed-code {
+    font-family: monospace;
+}
 /* from https://groups.google.com/forum/#!topic/codemirror/nmeqV2AHB_g */
 .CodeMirror * {
     box-sizing: content-box;
@@ -129,9 +140,6 @@ body {
     line-height: 28px;
     -moz-user-select: none;
     -webkit-user-select: none;
-}
-.cm-s-cruncher.CodeMirror.embed {
-    top: 0;
 }
 
 .CodeMirror-linenumber {

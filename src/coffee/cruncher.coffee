@@ -298,12 +298,21 @@ $ ->
         editor.doc.markClean()
         setTitle editor.doc.title
 
-    Cr.swappedDoc = (uid, title, mode) ->
+    window.onbeforeunload = ->
+        return if editor.doc.isClean()
+
+        return "You haven't saved your document since changing it. " +
+               "If you close this window, you might lose your data."
+
+    Cr.swappedDoc = (uid, title, mode = 'edit') ->
         if mode == 'edit'
             ($ '#toolbar').show()
             ($ '#container').removeClass('embed')
             editor.doc.uid = uid
-            history.replaceState {}, "", if uid? then "?/" + uid else ""
+            if uid?
+                history.replaceState {}, "", "?/" + uid
+            else
+                history.pushState {}, "", "/" # FIXME this will always go to root
         else if mode == 'view'
             ($ '#toolbar').show()
             ($ '#container').removeClass('embed')

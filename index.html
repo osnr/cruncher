@@ -74,7 +74,6 @@
                     <a title="Save to link" class="save-doc btn btn-default"><i class="fa fa-floppy-o"></i></a>
                     <a title="Publish" class="publish-doc btn btn-default"><i class="fa fa-globe"></i></a>
 		    <a title="About" class="about btn btn-default"><i class="fa fa-info-circle"></i></a>
-		    <!-- <a title="Collaborate" class="collaborate btn btn-default"><i class="fa fa-users"></i></a> -->
 		</div>
 	    </div>
 	</div>
@@ -94,6 +93,7 @@
                 <p>scrub and see charts</p>
             </div>
         </div>
+
         <div id="about" class="modal fade">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -118,6 +118,60 @@
                 </div>
             </div>
         </div>
+
+        <div id="publish" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Publish document</h4>
+                    </div>
+                    <div class="modal-body container-fluid">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"> Allow editing
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"> Gutter to left of line
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox"> Key hints on hover
+                                    </label>
+                                </div>
+                                <p>
+                                    <button class="btn btn-primary do-publish">Publish</button>
+                                </p>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">Preview</div>
+                                    <div class="panel-body">
+                                        <iframe class="embed-preview" src=""></iframe>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <p>Copy this code to embed your document somewhere:</p>
+                                    <textarea rows="3" class="embed-code form-control"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <p>Share this URL to let other people view (but not edit) your document:</p>
+                                    <input class="view-url form-control" type="text" readonly="readonly"></input>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="loading" style="display: none"></div>
     </body>
 </html>
