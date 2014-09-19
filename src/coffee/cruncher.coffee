@@ -248,6 +248,9 @@ $ ->
         selection.anchor = editor.getCursor('anchor')
 
     editor.on 'beforeChange', (instance, changeObj) ->
+        if Cr.settings and not Cr.settings.editable and not Cr.scr
+            changeObj.cancel()
+
         if changeObj.origin == '+delete' or Cr.scr?
             return
 
@@ -280,11 +283,11 @@ $ ->
                     (not changeObj.origin? and not (/^ = /.test changeObj.text[0]))
                 includeInMark startMark # (== endMark)
 
-    ($ document).on 'mouseenter.start-hover', '.cm-number', Cr.startHover
+    ($ document).on 'mouseenter.start-hover', '.cm-number:not(.locked-number)', Cr.startHover
 
     ($ document).on 'click', '.lock:not(.in-lock-mode)', ->
         # go into lock mode
-        ($ document).off 'mouseenter.start-hover', '.cm-number'
+        ($ document).off 'mouseenter.start-hover', '.cm-number:not(.locked-number)'
 
         ($ document).on 'mouseup', '.cm-number:not(.free-number)', (e) ->
             pos = Cr.editor.coordsChar
@@ -309,7 +312,7 @@ $ ->
 
     ($ document).on 'click', '.lock.in-lock-mode', ->
         # end lock mode
-        ($ document).on 'mouseenter.start-hover', '.cm-number', Cr.startHover
+        ($ document).on 'mouseenter.start-hover', '.cm-number:not(.locked-number)', Cr.startHover
 
         ($ this).removeClass('in-lock-mode')
         ($ '.CodeMirror').removeClass('in-lock-mode')
@@ -330,13 +333,7 @@ $ ->
         editor.doc.markClean()
         setTitle editor.doc.title
 
-    window.onbeforeunload = ->
-        return if editor.doc.isClean()
-
-        return "You haven't saved your document since changing it. " +
-               "If you close this window, you might lose your data."
-
-    Cr.swappedDoc = (uid, title, mode = 'edit') ->
+    Cr.swappedDoc = (uid, title, mode = 'edit', settings) ->
         if mode == 'edit'
             ($ '#toolbar').show()
             ($ '#container').removeClass('embed')
@@ -345,14 +342,36 @@ $ ->
                 history.replaceState {}, "", "?/" + uid
             else
                 history.pushState {}, "", "/" # FIXME this will always go to root
+
         else if mode == 'view'
             ($ '#toolbar').show()
             ($ '#container').removeClass('embed')
             history.replaceState {}, "", "?/view/" + uid
+
         else if mode == 'embed'
             ($ '#toolbar').hide()
             ($ '#container').addClass('embed')
             history.replaceState {}, "", "?/embed/" + uid
+
+        if mode == 'edit' || mode == 'view'
+            window.onbeforeunload = ->
+                return if editor.doc.isClean()
+
+                return "You haven't saved your document since changing it. " +
+                       "If you close this window, you might lose your data."
+        else
+            window.onbeforeunload = ->
+
+        if mode == 'view' || mode == 'embed'
+            Cr.settings = settings
+
+            if not settings.gutter
+                ($ '.CodeMirror-gutters').hide()
+                ($ '.CodeMirror-sizer').css('margin-left', '0px')
+
+            # editable handled in onBeforeChange and in scrubbing.coffee
+            # scrubbable, hints are handled in scrubbing.coffee
+
         editor.refresh()
 
         editor.doc.adjustments = []

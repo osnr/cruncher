@@ -151,6 +151,10 @@ body {
     -webkit-user-select: none;
 }
 
+.cm-s-cruncher .CodeMirror-cursor {
+    pointer-events: none;
+}
+
 .CodeMirror-linenumber {
     min-width: 30px;
 }
@@ -191,6 +195,9 @@ body {
     color: gray;
     border-bottom: none !important;
     cursor: not-allowed !important;
+}
+.cm-s-cruncher.in-lock-mode .locked-number {
+    cursor: pointer !important;
 }
 .cm-s-cruncher .locked-number.hovering-number {
     color: gray;

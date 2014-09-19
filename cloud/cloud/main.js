@@ -1,6 +1,7 @@
 Parse.Cloud.define("publish", function(request, response) {
     var saveId = request.params.saveId;
     var data = request.params.data;
+    var settings = request.params.settings;
 
     Parse.Cloud.useMasterKey();
 
@@ -31,6 +32,7 @@ Parse.Cloud.define("publish", function(request, response) {
     }).then(function(publishDoc) {
         publishDoc.set("saveId", saveId);
         publishDoc.set("data", data);
+        publishDoc.set("settings", settings);
 
         return publishDoc.save();
 
@@ -56,7 +58,7 @@ Parse.Cloud.define("getPublish", function(request, response) {
         useMasterKey: true,
 
         success: function(publishDoc) {
-            response.success({ data: publishDoc.get("data") });
+            response.success({ data: publishDoc.get("data"), settings: publishDoc.get("settings") });
         },
         error: function(error) {
             response.error(error);

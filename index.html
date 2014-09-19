@@ -144,27 +144,32 @@
                     </div>
                     <div class="modal-body container-fluid">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox"> Allow editing
+                                        <input class="publish-editable" checked="checked" type="checkbox"> Allow editing
                                     </label>
                                 </div>
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox"> Gutter to left of line
+                                        <input class="publish-scrubbable" checked="checked" type="checkbox"> Allow scrubbing
                                     </label>
                                 </div>
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox"> Key hints on hover
+                                        <input class="publish-gutter" checked="checked" type="checkbox"> Show gutter on left edge
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input class="publish-hints" checked="checked" type="checkbox"> Keyboard hints on hover
                                     </label>
                                 </div>
                                 <p>
                                     <button class="btn btn-primary do-publish">Publish</button>
                                 </p>
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-7">
                                 <div class="panel panel-default">
                                     <div class="panel-heading">Preview</div>
                                     <div class="panel-body">

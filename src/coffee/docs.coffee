@@ -33,7 +33,7 @@ $ ->
                     when m?)
             , null, 2
 
-    deserializeDoc = (data, uid, mode = 'edit') ->
+    deserializeDoc = (data, uid, mode = 'edit', settings) ->
         data = JSON.parse data
         uid = uid ? Cr.editor.doc.uid # reuse old UID if necessary
         Cr.editor.swapDoc (CodeMirror.Doc data.text, 'cruncher')
@@ -42,7 +42,7 @@ $ ->
             newMark = Cr.editor.markText mark.from, mark.to, mark.options
             newMark.cid = mark.cid
 
-        Cr.swappedDoc uid, data.title, mode
+        Cr.swappedDoc uid, data.title, mode, settings
 
     ($ '.new-doc').click ->
         do Cr.newDoc
@@ -81,7 +81,14 @@ $ ->
         ($ '#publish').modal('show')
 
     ($ '.do-publish').click ->
-        Cr.publishDoc Cr.editor.doc.uid,
+        settings =
+            editable: ($ '.publish-editable').prop('checked')
+            scrubbable: ($ '.publish-scrubbable').prop('checked')
+            gutter: ($ '.publish-gutter').prop('checked')
+            hints: ($ '.publish-hints').prop('checked')
+        console.log settings
+
+        Cr.publishDoc Cr.editor.doc.uid, settings,
             success: (publishId) ->
                 baseUrl = window.location.href.match(/(^[^\?]*)/)[1]
                 viewUrl = baseUrl + '?/view/' + publishId
@@ -94,7 +101,7 @@ $ ->
     Cr.loadView = (viewid) ->
         Parse.Cloud.run "getPublish", { publishId: viewid },
             success: (response) ->
-                deserializeDoc response.data, viewid, 'view'
+                deserializeDoc response.data, viewid, 'view', response.settings
 
             error: (response, error) ->
                 alert 'Failed to load published document: ' + error 
@@ -103,7 +110,7 @@ $ ->
     Cr.loadEmbed = (viewid) -> # FIXME merge with loadView
         Parse.Cloud.run "getPublish", { publishId: viewid },
             success: (response) ->
-                deserializeDoc response.data, viewid, 'embed'
+                deserializeDoc response.data, viewid, 'embed', response.settings
 
             error: (response, error) ->
                 alert 'Failed to load published document: ' + error
@@ -137,8 +144,8 @@ $ ->
 
             error: (doc, error) -> console.log 'error', doc, error
 
-    Cr.publishDoc = (uid, callbacks) ->
-        Parse.Cloud.run "publish", { saveId: uid, data: serializeDoc() },
+    Cr.publishDoc = (uid, settings, callbacks) ->
+        Parse.Cloud.run "publish", { saveId: uid, data: serializeDoc(), settings: settings },
             success: (response) ->
                 callbacks.success response.publishId
                 console.log 'published', response

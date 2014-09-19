@@ -36,11 +36,13 @@ Cr.startHover = (enterEvent) ->
         inclusiveLeft: true # so mark survives replacement of its inside
         inclusiveRight: true
 
-    ($ '.CodeMirror-code .hovering-number')
-        .not('.free-number')
-            .on 'mousedown.scrub', (startDrag hover.value, hover.mark)
+    if (not Cr.settings) or Cr.settings.scrubbable
+        ($ '.CodeMirror-code .hovering-number')
+            .not('.free-number')
+                .on 'mousedown.scrub', (startDrag hover.value, hover.mark)
 
-    ($ '#keys').stop(true, true).show()
+    if (not Cr.settings) or Cr.settings.hints
+        ($ '#keys').stop(true, true).show()
 
     if enterEvent.ctrlKey or enterEvent.metaKey
         Cr.addGraph hover.mark, Cr.dependentsOn hover.mark
@@ -59,9 +61,10 @@ Cr.startHover = (enterEvent) ->
             Cr.removeGraph()
         )
 
-    (new Cr.NumberWidget hover.value,
-        hover.pos,
-        (line) -> Cr.evalLine line).show()
+    if (not Cr.settings) or Cr.settings.editable
+        (new Cr.NumberWidget hover.value,
+            hover.pos,
+            (line) -> Cr.evalLine line).show()
 
 endHover = ->
     hover?.mark?.clear() if not scr?
