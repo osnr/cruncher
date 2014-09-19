@@ -2,7 +2,9 @@ window.Cruncher = Cr = window.Cruncher || {}
 
 CodeMirror.TextMarker::toSerializable = ->
     return null unless @className? and
-        ((@className.indexOf("connected-number")) is 0 or @className is "free-number")
+        ((@className.indexOf("connected-number")) is 0 or
+          @className is "free-number" or
+          @className is "locked-number")
 
     {from, to} = @.find()
 

@@ -279,8 +279,40 @@ $ ->
             else if ((changeObj.text.length == 1) and (/^[\-0-9\.,]+$/.test changeObj.text[0])) or
                     (not changeObj.origin? and not (/^ = /.test changeObj.text[0]))
                 includeInMark startMark # (== endMark)
-                        
-    ($ document).on 'mouseenter', '.cm-number', Cr.startHover
+
+    ($ document).on 'mouseenter.start-hover', '.cm-number', Cr.startHover
+
+    ($ document).on 'click', '.lock:not(.in-lock-mode)', ->
+        # go into lock mode
+        ($ document).off 'mouseenter.start-hover', '.cm-number'
+
+        ($ document).on 'mouseup', '.cm-number:not(.free-number)', (e) ->
+            pos = Cr.editor.coordsChar
+                left: e.pageX
+                top: e.pageY
+
+            value = Cr.nearestValue pos
+
+            if ($ e.target).hasClass('locked-number')
+                marks = editor.findMarksAt pos
+                for m in marks
+                    m.clear() if m.className == 'locked-number'
+            else
+                editor.markText (Cr.valueFrom value), (Cr.valueTo value),
+                    className: 'locked-number'
+                    inclusiveLeft: false
+                    inclusiveRight: false
+                    atomic: true
+
+        ($ this).addClass('in-lock-mode')
+        ($ '.CodeMirror').addClass('in-lock-mode')
+
+    ($ document).on 'click', '.lock.in-lock-mode', ->
+        # end lock mode
+        ($ document).on 'mouseenter.start-hover', '.cm-number', Cr.startHover
+
+        ($ this).removeClass('in-lock-mode')
+        ($ '.CodeMirror').removeClass('in-lock-mode')
 
     editor.refresh()
 

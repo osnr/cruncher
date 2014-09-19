@@ -85,6 +85,7 @@ body {
     background: none;
     text-align: center;
 }
+
 .tool-buttons-left {
     position: absolute;
     left: 10px;
@@ -102,6 +103,10 @@ body {
 }
 .tool-buttons .export-doc {
     margin-left: -1px;
+}
+.tool-buttons .btn.in-lock-mode {
+    background-color: #6E6E6E;
+    color: #eee;
 }
 #file-chooser {
     display: none;
@@ -158,6 +163,9 @@ body {
     cursor: col-resize;
     z-index: 6;
 }
+.cm-s-cruncher.in-lock-mode .cm-number {
+    cursor: pointer;
+}
 .cm-s-cruncher .cm-number:not(.free-number) {
     border-bottom: 1px dashed #003056;
 }
@@ -177,6 +185,15 @@ body {
 }
 .cm-s-cruncher .free-number.hovering-number {
     color: @free-color;
+}
+
+.cm-s-cruncher .locked-number {
+    color: gray;
+    border-bottom: none !important;
+    cursor: not-allowed !important;
+}
+.cm-s-cruncher .locked-number.hovering-number {
+    color: gray;
 }
 
 /* connections */
