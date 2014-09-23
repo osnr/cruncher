@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-Cr.VERSION = '2014-02-07'
+Cr.VERSION = '2014-09-19'
 
 $ ->
     onEquals = (cm) ->
@@ -334,8 +334,15 @@ $ ->
         setTitle editor.doc.title
 
     Cr.swappedDoc = (uid, title, mode = 'edit', settings) ->
+        Cr.settings = settings
+
         if mode == 'edit'
             ($ '#toolbar').show()
+            ($ '.edit').show()
+            ($ '.view').hide()
+
+            ($ '#embed-to-view').hide()
+
             ($ '#container').removeClass('embed')
             editor.doc.uid = uid
             if uid?
@@ -345,11 +352,21 @@ $ ->
 
         else if mode == 'view'
             ($ '#toolbar').show()
+            ($ '.edit').hide()
+            ($ '.view').show()
+
+            ($ '#embed-to-view').hide()
+
             ($ '#container').removeClass('embed')
             history.replaceState {}, "", "?/view/" + uid
 
         else if mode == 'embed'
             ($ '#toolbar').hide()
+
+            ($ '#embed-to-view').show()
+            ($ '#embed-to-view').click ->
+                window.open document.location.origin + "?/view/" + uid
+
             ($ '#container').addClass('embed')
             history.replaceState {}, "", "?/embed/" + uid
 
@@ -363,8 +380,6 @@ $ ->
             window.onbeforeunload = ->
 
         if mode == 'view' || mode == 'embed'
-            Cr.settings = settings
-
             if not settings.gutter
                 ($ '.CodeMirror-gutters').hide()
                 ($ '.CodeMirror-sizer').css('margin-left', '0px')

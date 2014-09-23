@@ -137,7 +137,8 @@ $ ->
         doc.save null,
             success: (doc) ->
                 Cr.editor.doc.uid = doc.id
-                history.replaceState {}, "", "?/" + doc.id
+                Cr.swappedDoc doc.id, Cr.editor.doc.title, 'edit'
+
                 console.log 'success', doc
 
                 Cr.markClean()

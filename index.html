@@ -62,7 +62,7 @@
 
 	<script>
 	    $(function() {
-                $('#tool-buttons .btn').tooltip({
+                $('.tool-buttons .btn').tooltip({
                     container: 'body',
                     placement: 'bottom'
                 });
@@ -76,11 +76,11 @@
 		    <input type="text" id="file-name"></input>
 		</div>
 
-                <div class="tool-buttons tool-buttons-left">
+                <div class="tool-buttons tool-buttons-left edit">
                     <a title="Lock" class="lock btn btn-default"><i class="fa fa-lock"></i></a>
                 </div>
 
-		<div class="tool-buttons tool-buttons-right">
+		<div class="edit tool-buttons tool-buttons-right">
 		    <a title="New" class="new-doc btn btn-default"><i class="fa fa-file"></i></a>
 		    <div class="btn-group">
 			<a title="Import from disk" class="import-doc btn btn-default"><i class="fa fa-cloud-upload"></i></a>
@@ -91,12 +91,22 @@
                     <a title="Publish" class="publish-doc btn btn-default"><i class="fa fa-globe"></i></a>
 		    <a title="About" class="about btn btn-default"><i class="fa fa-info-circle"></i></a>
 		</div>
+
+		<div class="view tool-buttons tool-buttons-right">
+		    <a title="New" class="new-doc btn btn-default"><i class="fa fa-file"></i></a>
+
+		    <a title="Export to disk" class="export-doc btn btn-default"><i class="fa fa-cloud-download"></i></a>
+
+                    <a title="Save to new link" class="save-doc btn btn-default"><i class="fa fa-floppy-o"></i></a>
+		    <a title="About" class="about btn btn-default"><i class="fa fa-info-circle"></i></a>
+		</div>
 	    </div>
 	</div>
 
         <div id="container">
 	    <textarea id="code" name="code"></textarea>
 	    <div id="overlay"></div>
+            <button id="embed-to-view"><i class="fa fa-expand"></i></button>
         </div>
 
         <div id="keys" style="display: none">
