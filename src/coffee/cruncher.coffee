@@ -374,7 +374,7 @@ $ ->
             window.onbeforeunload = ->
                 return if editor.doc.isClean()
 
-                return "You haven't saved your document since changing it. " +
+                return "You haven't saved your Cruncher document since changing it. " +
                        "If you close this window, you might lose your data."
         else
             window.onbeforeunload = ->
