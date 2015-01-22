@@ -430,4 +430,10 @@ $ ->
 
     ($ '.about').click ->
         ($ '#about').modal('show')
-
+    ($ '.show-plot-example').click ->
+        if ($ '.plot-example:visible').length
+            ($ '.plot-example').slideUp ->
+                ($ '.plot-example img').attr('src', '')
+        else
+            ($ '.plot-example img').attr('src', 'res/chart.gif')
+            ($ '.plot-example').slideDown()
