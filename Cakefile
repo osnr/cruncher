@@ -1,4 +1,4 @@
-{exec} = require 'child_process'
+{exec, spawn} = require 'child_process'
 fs = require 'fs'
 path = require 'path'
 
@@ -68,3 +68,9 @@ task 'watch:jison', 'Compile + watch *.jison only', ->
 
 task 'watch:css', 'Compile + watch *.less only', ->
     watchFiles less, compileLess
+
+task 'test', 'Test with Casper', ->
+    casper = spawn 'casperjs', ['test', 'test/']
+    casper.stdout.pipe process.stdout
+    casper.stderr.pipe process.stderr
+
