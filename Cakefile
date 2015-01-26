@@ -10,6 +10,7 @@ coffee = ('src/coffee/' + s for s in \
      'scrubbing.coffee', 'solver.coffee', 'util.coffee', 'value.coffee'])
 jison = ['src/jison/parser.jison']
 less = ['src/less/cruncher.less']
+test = ('test/' + s for s in ['solver.coffee'])
 
 coffeeOut = 'bin/js'
 jisonOut = 'bin/js'
@@ -70,7 +71,6 @@ task 'watch:css', 'Compile + watch *.less only', ->
     watchFiles less, compileLess
 
 task 'test', 'Test with Casper', ->
-    casper = spawn 'casperjs', ['test', 'test/']
+    casper = spawn 'casperjs', ['test'].concat(test)
     casper.stdout.pipe process.stdout
     casper.stderr.pipe process.stderr
-
