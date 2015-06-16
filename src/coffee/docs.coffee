@@ -104,7 +104,7 @@ $ ->
                 deserializeDoc response.data, viewid, 'view', response.settings
 
             error: (response, error) ->
-                alert 'Failed to load published document: ' + error 
+                alert 'Failed to load published document: ' + error
                 Cr.newDoc()
 
     Cr.loadEmbed = (viewid) -> # FIXME merge with loadView
@@ -116,8 +116,21 @@ $ ->
                 alert 'Failed to load published document: ' + error
                 Cr.newDoc()
 
+    Cr.loadExample = (tid) ->
+        ($ '#loading').fadeIn()
+
+        ($.get 'https://cruncher-examples.s3.amazonaws.com/' + tid, (data) ->
+            ($ '#loading').fadeOut()
+            deserializeDoc data, null
+        ).fail ->
+            ($ '#loading').fadeOut()
+            Cr.newDoc()
+
     Cr.loadDoc = (uid) ->
         ($ '#loading').fadeIn()
+
+        if uid.substring(0, 'examples/'.length) == 'examples/'
+            Cr.loadExample (uid.substring 'examples/'.length)
 
         query = new Parse.Query(Doc)
         query.get uid,
