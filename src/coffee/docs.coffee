@@ -18,10 +18,15 @@ CodeMirror.TextMarker::toSerializable = ->
         atomic: @atomic
 
 $ ->
-    Parse.initialize("m1vgRwDNCkaGLUgVcHu0awPVj6rMCN709dGSZpJu",
-        "mlx5yORpt3sIK3mqaX3eW4lhtimn9KQZDJkxJJNK")
-    Doc = Parse.Object.extend("Doc")
-    PublishDoc = Parse.Object.extend("PublishDoc")
+    # Initialize Firebase
+    config =
+        apiKey: "AIzaSyBbisLJOm0QPhkeMCpPXLtlW-_PZd2sHUY"
+        authDomain: "cruncher-4719b.firebaseapp.com"
+        databaseURL: "https://cruncher-4719b.firebaseio.com"
+        storageBucket: "cruncher-4719b.appspot.com"
+        messagingSenderId: "715362151432"
+    firebase.initializeApp config
+    db = firebase.database()
 
     serializeDoc = ->
         JSON.stringify
@@ -33,16 +38,20 @@ $ ->
                     when m?)
             , null, 2
 
-    deserializeDoc = (data, uid, mode = 'edit', settings) ->
+    deserializeDoc = (data, key, mode = 'edit', settings) ->
         data = JSON.parse data
-        uid = uid ? Cr.editor.doc.uid # reuse old UID if necessary
-        Cr.editor.swapDoc (CodeMirror.Doc data.text, 'cruncher')
+        doc = CodeMirror.Doc data.text, 'cruncher'
+        key ?= db.ref('docs').push().key
+        doc.key = key
+        doc.title = data.title
+        doc.settings = settings
+        Cr.editor.swapDoc doc
 
         for mark in data.marks
             newMark = Cr.editor.markText mark.from, mark.to, mark.options
             newMark.cid = mark.cid
 
-        Cr.swappedDoc uid, data.title, mode, settings
+        Cr.swappedDoc mode
 
     ($ '.new-doc').click ->
         do Cr.newDoc
@@ -71,7 +80,7 @@ $ ->
         saveAs blob, title
 
     ($ '.save-doc').click ->
-        Cr.saveDoc Cr.editor.doc.uid
+        Cr.saveDoc()
 
     ($ '.publish-doc').click ->
         if not Cr.editor.doc.uid?
@@ -98,14 +107,21 @@ $ ->
                 ($ '.embed-code').val '<iframe src="' + embedUrl + '"></iframe>'
                 ($ '.embed-preview').attr 'src', embedUrl
 
-    Cr.loadView = (viewid) ->
-        Parse.Cloud.run "getPublish", { publishId: viewid },
-            success: (response) ->
-                deserializeDoc response.data, viewid, 'view', response.settings
+    Cr.newDoc = ->
+        doc = CodeMirror.Doc('', 'cruncher')
+        doc.key = db.ref('docs').push().key
+        Cr.editor.swapDoc doc
+        Cr.swappedDoc 'Untitled'
 
-            error: (response, error) ->
+    Cr.loadView = (viewKey) ->
+        db.ref("docs/#{viewKey}").once('value')
+            .then((response) ->
+                val = response.val()
+                deserializeDoc val.data, viewKey, 'view', val.settings
+            ).catch((error) ->
                 alert 'Failed to load published document: ' + error
                 Cr.newDoc()
+            )
 
     Cr.loadEmbed = (viewid) -> # FIXME merge with loadView
         Parse.Cloud.run "getPublish", { publishId: viewid },
@@ -126,37 +142,26 @@ $ ->
             ($ '#loading').fadeOut()
             Cr.newDoc()
 
-    Cr.loadDoc = (uid) ->
+    Cr.loadDoc = (key) ->
         ($ '#loading').fadeIn()
 
-        if uid.substring(0, 'examples/'.length) == 'examples/'
-            Cr.loadExample (uid.substring 'examples/'.length)
+        if key.substring(0, 'examples/'.length) == 'examples/'
+            Cr.loadExample (key.substring 'examples/'.length)
+            return
 
-        query = new Parse.Query(Doc)
-        query.get uid,
-            success: (doc) ->
+        db.ref("docs/#{key}").once('value')
+            .then((response) ->
                 ($ '#loading').fadeOut()
-                deserializeDoc doc.get('data'), uid
-
-            error: (doc, error) ->
+                val = response.val()
+                deserializeDoc val.data, key, 'view', val.settings
+            ).catch((error) ->
                 ($ '#loading').fadeOut()
                 Cr.newDoc()
+            )
 
-    Cr.saveDoc = (uid) ->
-        doc = new Doc()
-        doc.id = uid
-        doc.set('data', serializeDoc())
-
-        doc.save null,
-            success: (doc) ->
-                Cr.editor.doc.uid = doc.id
-                Cr.swappedDoc doc.id, Cr.editor.doc.title, 'edit'
-
-                console.log 'success', doc
-
-                Cr.markClean()
-
-            error: (doc, error) -> console.log 'error', doc, error
+    Cr.saveDoc = ->
+        db.ref("docs/" + Cr.editor.doc.key).set(serializeDoc())
+        Cr.markClean()
 
     Cr.publishDoc = (uid, settings, callbacks) ->
         Parse.Cloud.run "publish", { saveId: uid, data: serializeDoc(), settings: settings },

@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "docs": {
+      ".read": false,
+      ".write": false,
+      "$doc": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}

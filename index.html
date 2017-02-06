@@ -4,22 +4,10 @@
 	<meta http-equiv="content-type" content="text/html; charset=UTF8">
 	<title>Cruncher</title>
 
-        <script>
-            // FIXME well aware this is *not* really secure, but it's
-            // hard to force SSL serverside while we're hosted on Parse
-            if (window.location.protocol == "http:" &&
-                (window.location.host == "cruncher.io" ||
-                 window.location.host == "www.cruncher.io")) {
-
-                window.location.href = "https:" +
-                    window.location.href.substring(window.location.protocol.length);
-            }
-        </script>
-
 	<!-- jQuery -->
 	<script src="lib/js/jquery-1.8.3.js"></script>
 	<script src="lib/js/jquery.transit.js"></script>
-	
+
 	<script src="lib/js/raphael-min.js"></script>
 
 	<script src="lib/js/d3.v3.js"></script>
@@ -35,7 +23,7 @@
 
         <link rel="stylesheet" href="lib/css/keys.css"></link>
 
-        <script src="//www.parsecdn.com/js/parse-1.3.0.min.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/3.6.8/firebase.js"></script>
 
 	<!-- CodeMirror -->
 	<link rel="stylesheet" href="lib/css/codemirror.css"></link>
@@ -45,20 +33,20 @@
 	<script src="lib/js/uniroot.js"></script>
 
 	<!-- Cruncher -->
-	<link rel="stylesheet" href="bin/css/cruncher.css">
-	<script src="bin/js/util.js"></script>
-	<script src="bin/js/solver.js"></script>
-	<script src="bin/js/value.js"></script>
-	<script src="bin/js/parser.js"></script>
-	<script src="bin/js/highlight.js"></script>
-	<script src="bin/js/scrubbing.js"></script>
-	<script src="bin/js/number-widget.js"></script>
-	<script src="bin/js/line-state.js"></script>
-	<script src="bin/js/connect.js"></script>
-	<script src="bin/js/charts.js"></script>
-	<script src="bin/js/graphs.js"></script>
-	<script src="bin/js/docs.js"></script>
-	<script src="bin/js/cruncher.js"></script>
+	<link rel="stylesheet" href="css/cruncher.css">
+	<script src="js/util.js"></script>
+	<script src="js/solver.js"></script>
+	<script src="js/value.js"></script>
+	<script src="js/parser.js"></script>
+	<script src="js/highlight.js"></script>
+	<script src="js/scrubbing.js"></script>
+	<script src="js/number-widget.js"></script>
+	<script src="js/line-state.js"></script>
+	<script src="js/connect.js"></script>
+	<script src="js/charts.js"></script>
+	<script src="js/graphs.js"></script>
+	<script src="js/docs.js"></script>
+	<script src="js/cruncher.js"></script>
 
 	<script>
 	    $(function() {

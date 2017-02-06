@@ -1,6 +1,6 @@
 window.Cruncher = Cr = window.Cruncher || {}
 
-Cr.VERSION = '2014-09-19'
+Cr.VERSION = '2017-02-06'
 
 $ ->
     onEquals = (cm) ->
@@ -333,8 +333,9 @@ $ ->
         editor.doc.markClean()
         setTitle editor.doc.title
 
-    Cr.swappedDoc = (uid, title, mode = 'edit', settings) ->
+    Cr.swappedDoc = (title, mode = 'edit', settings) ->
         Cr.settings = settings
+        key = editor.doc.key
 
         if mode == 'edit'
             ($ '#toolbar').show()
@@ -344,11 +345,7 @@ $ ->
             ($ '#embed-to-view').hide()
 
             ($ '#container').removeClass('embed')
-            editor.doc.uid = uid
-            if uid?
-                history.replaceState {}, "", "?/" + uid
-            else
-                history.pushState {}, "", "/" # FIXME this will always go to root
+            history.replaceState {}, "", "?/" + key
 
         else if mode == 'view'
             ($ '#toolbar').show()
@@ -358,17 +355,17 @@ $ ->
             ($ '#embed-to-view').hide()
 
             ($ '#container').removeClass('embed')
-            history.replaceState {}, "", "?/view/" + uid
+            history.replaceState {}, "", "?/view/" + key
 
         else if mode == 'embed'
             ($ '#toolbar').hide()
 
             ($ '#embed-to-view').show()
             ($ '#embed-to-view').click ->
-                window.open document.location.origin + "?/view/" + uid
+                window.open document.location.origin + "?/view/" + key
 
             ($ '#container').addClass('embed')
-            history.replaceState {}, "", "?/embed/" + uid
+            history.replaceState {}, "", "?/embed/" + key
 
         if mode == 'edit' || mode == 'view'
             window.onbeforeunload = ->
@@ -391,11 +388,7 @@ $ ->
 
         editor.doc.adjustments = []
         do Cr.forceEval
-        setTitle title
-
-    Cr.newDoc = ->
-        editor.swapDoc (CodeMirror.Doc '', 'cruncher')
-        Cr.swappedDoc null, 'Untitled'
+        setTitle editor.doc.title
 
     ($ '#file-name').on 'change keyup paste', ->
         title = ($ @).val()
@@ -409,20 +402,20 @@ $ ->
         setTitle title
 
     do ->
-        paramUid = window.location.search.substring 2
+        paramKey = window.location.search.substring 2
 
-        if paramUid == ''
+        if paramKey == ''
             do Cr.newDoc
-        else if paramUid.substring(0, 'view/'.length) == 'view/'
-            viewid = paramUid.substring 'view/'.length
-            Cr.loadView viewid
-        else if paramUid.substring(0, 'embed/'.length) == 'embed/'
+        else if paramKey.substring(0, 'view/'.length) == 'view/'
+            viewKey = paramKey.substring 'view/'.length
+            Cr.loadView viewKey
+        else if paramKey.substring(0, 'embed/'.length) == 'embed/'
             ($ '#toolbar').hide()
             ($ '#container').addClass('embed')
-            viewid = paramUid.substring 'embed/'.length
-            Cr.loadEmbed viewid
+            embedKey = paramKey.substring 'embed/'.length
+            Cr.loadEmbed embedKey
         else
-            Cr.loadDoc paramUid
+            Cr.loadDoc paramKey
 
     if not localStorage['dontIntro']
         ($ '#about').modal('show')
