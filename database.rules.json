@@ -14,7 +14,7 @@
       "$publishedDoc": {
         ".read": true,
         ".write": true,
-        ".validate": "newData.saveKey == $publishedDoc.val().saveKey"
+        ".validate": "newData.saveKey == $publishedDoc.val().saveKey",
         "saveKey": {
           ".read": false,
           ".write": true

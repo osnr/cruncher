@@ -39,7 +39,6 @@ $ ->
             , null, 2
 
     deserializeDoc = (data, key, mode = 'edit', settings) ->
-        console.log data
         data = JSON.parse data
         doc = CodeMirror.Doc data.text, 'cruncher'
         key ?= db.ref('docs').push().key
@@ -84,10 +83,8 @@ $ ->
         Cr.saveDoc(Cr.editor.doc)
 
     ($ '.publish-doc').click ->
-        if not Cr.editor.doc.uid?
-            alert 'You need to save to a link before publishing.'
-            return
-
+        # FIXME: Finish this move to Firebase.
+        alert 'Note: Publishing doesn\'t really work right now.'
         ($ '#publish').modal('show')
 
     ($ '.do-publish').click ->
@@ -96,7 +93,6 @@ $ ->
             scrubbable: ($ '.publish-scrubbable').prop('checked')
             gutter: ($ '.publish-gutter').prop('checked')
             hints: ($ '.publish-hints').prop('checked')
-        console.log settings
 
         Cr.publishDoc Cr.editor.doc.uid, settings,
             success: (publishId) ->
@@ -111,8 +107,9 @@ $ ->
     Cr.newDoc = ->
         doc = CodeMirror.Doc('', 'cruncher')
         doc.key = db.ref('docs').push().key
+        doc.title = 'Untitled'
         Cr.editor.swapDoc doc
-        Cr.swappedDoc 'Untitled'
+        Cr.swappedDoc()
 
     Cr.loadView = (viewKey) ->
         db.ref("docs/#{viewKey}").once('value')

@@ -333,7 +333,7 @@ $ ->
         editor.doc.markClean()
         setTitle editor.doc.title
 
-    Cr.swappedDoc = (title, mode = 'edit', settings) ->
+    Cr.swappedDoc = (mode = 'edit', settings) ->
         Cr.settings = settings
         key = editor.doc.key
 
