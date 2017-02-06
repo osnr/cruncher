@@ -20,7 +20,7 @@ jisonOut = 'public/js'
 lessOut = 'public/css'
 
 compileCoffee = (file) ->
-    exec "coffee -o #{coffeeOut} -c #{file}", (err, stdout, stderr) ->
+    exec "coffee -m -o #{coffeeOut} -c #{file}", (err, stdout, stderr) ->
         return console.error err if err
         console.log "Compiled #{file}"
 

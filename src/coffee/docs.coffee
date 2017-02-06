@@ -39,6 +39,7 @@ $ ->
             , null, 2
 
     deserializeDoc = (data, key, mode = 'edit', settings) ->
+        console.log data
         data = JSON.parse data
         doc = CodeMirror.Doc data.text, 'cruncher'
         key ?= db.ref('docs').push().key
@@ -80,7 +81,7 @@ $ ->
         saveAs blob, title
 
     ($ '.save-doc').click ->
-        Cr.saveDoc()
+        Cr.saveDoc(Cr.editor.doc)
 
     ($ '.publish-doc').click ->
         if not Cr.editor.doc.uid?
@@ -153,17 +154,22 @@ $ ->
             .then((response) ->
                 ($ '#loading').fadeOut()
                 val = response.val()
-                deserializeDoc val.data, key, 'view', val.settings
+                deserializeDoc val, key
             ).catch((error) ->
+                console.log error
                 ($ '#loading').fadeOut()
                 Cr.newDoc()
             )
 
-    Cr.saveDoc = ->
-        db.ref("docs/" + Cr.editor.doc.key).set(serializeDoc())
+    Cr.saveDoc = (doc) ->
+        db.ref("docs/" + doc.key).set(serializeDoc(doc))
         Cr.markClean()
 
-    Cr.publishDoc = (uid, settings, callbacks) ->
+    Cr.publishDoc = (callbacks) ->
+        publishedKey = db.ref('publishedDocs').push().key
+        db.ref("publishedDocSaveKeys/" + publishedKey).set()
+
+        db.ref("publishedDocs/" + publishedKey)
         Parse.Cloud.run "publish", { saveId: uid, data: serializeDoc(), settings: settings },
             success: (response) ->
                 callbacks.success response.publishId
@@ -172,3 +178,4 @@ $ ->
             error: (response, error) ->
                 callbacks.error response, error
                 console.log 'error', response, error
+
