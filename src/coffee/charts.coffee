@@ -19,7 +19,13 @@ gForLineHandle = (line, handle) ->
 
 width = 100
 height = 100
-ampl = 10
+ampl = ->
+    # FIXME special case for 0.0x scrubbing
+    if Cr.scr.origNumString.startsWith('0.')
+        return 10/Math.pow(10, Cr.scr.fixedDigits)
+    else
+        return 10
+
 scaleSide = 0.1
 delta = 0.1
 getData = (yFn, xMin, xMax) ->
@@ -64,8 +70,8 @@ addChart = (yMark, yFn) ->
     chart.yFn = yFn
     y = yFn Cr.scr.num
 
-    xMin = Cr.scr.num - ampl
-    xMax = Cr.scr.num + ampl
+    xMin = Cr.scr.num - ampl()
+    xMax = Cr.scr.num + ampl()
 
     {data, yMin, yMax} = getData yFn, xMin, xMax
     chart.data = data
@@ -154,8 +160,8 @@ updateChart = (mark) ->
     y = chart.yFn Cr.scr.num
 
     xDomain = chart.xScale.domain()
-    xMin = Math.min xDomain[0], Cr.scr.num - ampl
-    xMax = Math.max xDomain[1], Cr.scr.num + ampl
+    xMin = Math.min xDomain[0], Cr.scr.num - ampl()
+    xMax = Math.max xDomain[1], Cr.scr.num + ampl()
     chart.xScale.domain([xMin, xMax])
 
     {data, yMin, yMax} = getData chart.yFn, xMin, xMax
