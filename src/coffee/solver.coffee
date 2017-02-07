@@ -30,25 +30,19 @@ secantMethod = (f, x, fp, numIters) ->
 
     if -eps < (f x) < eps
         x
-    else if numIters > 50
+    else if numIters > 500
         NaN
     else
         secantMethod f, x - (f x) / (fp x), fp, numIters + 1
 
 Cr.findRoot = (f, x1, x2) ->
-    [lowerLimit, upperLimit] = bracket(f, x1, x2)
-    if lowerLimit? and upperLimit?
-        # use Brent's method if we can bracket a root
-        root = uniroot(f, lowerLimit, upperLimit, eps)
+    # FIXME: hack reverting to pure secant method
 
     # return if it actually is a root (could be a singularity)
     return root if Math.abs(f(root)) < eps
 
     # not working? throw it at secant method, why not
-    root = secantMethod(f, x1)
+    root = secantMethod(f, 1)
     return root if !isNaN(root) and Math.abs(f(root)) < eps
-
-    root = secantMethod(f, x2)
-    return root if Math.abs(f(root)) < eps
 
     return NaN

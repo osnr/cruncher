@@ -13,10 +13,10 @@ class Cr.NumberWidget
                 .addClass('fa-circle')
                 .removeClass 'fa-circle-o'
 
-        if typeof value.num == 'function'
+        if typeof @value.num == 'function'
             # this is a free number
             @mark = (mark for mark in Cr.editor.findMarksAt \
-                Cr.valueFrom value when mark.className == 'free-number')[0]
+                Cr.valueFrom @value when mark.className == 'free-number')[0]
 
     show: ->
         ($ '.number-widget').remove()

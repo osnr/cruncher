@@ -95,6 +95,7 @@ startDrag = (value, mark) -> (downEvent) =>
     Cr.scr = scr = {}
 
     scr.origNum = scr.num = value.num
+    scr.origNumString = value.numString()
     scr.fixedDigits = value.numString().split('.')[1]?.length ? 0
 
     scr.mark = mark
@@ -117,7 +118,11 @@ startDrag = (value, mark) -> (downEvent) =>
     onDragMove = (moveEvent) =>
         xOffset = moveEvent.pageX - xCenter
 
-        scr.delta = Math.round (xOffset / 5)
+        if scr.origNumString.startsWith('0.')
+            scr.delta = Math.round(xOffset / 5) / Math.pow(10, scr.fixedDigits)
+            console.log scr.delta, scr.fixedDigits
+        else
+            scr.delta = Math.round(xOffset / 5)
 
         if scr.delta != 0 and not isNaN(scr.delta)
             range = scr.mark.find()
