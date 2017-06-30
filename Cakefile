@@ -1,7 +1,6 @@
 {exec, spawn} = require 'child_process'
 fs = require 'fs'
 path = require 'path'
-watch = require 'watch'
 
 lastChange = {}
 
