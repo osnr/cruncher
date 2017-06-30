@@ -1,4 +1,3 @@
-let Cr;
 window.Cruncher = Cr = window.Cruncher || {};
 
 let graph = null;
