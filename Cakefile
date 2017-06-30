@@ -7,20 +7,21 @@ lastChange = {}
 
 staticPaths = ['res', 'lib', 'index.html']
 
-coffee = ('src/coffee/' + s for s in \
-    ['connect.coffee', 'cruncher.coffee', 'docs.coffee', 'charts.coffee',
-     'graphs.coffee', 'highlight.coffee', 'line-state.coffee', 'number-widget.coffee',
-     'scrubbing.coffee', 'solver.coffee', 'util.coffee', 'value.coffee'])
+js = ('src/coffee/' + s for s in \
+    ['connect.js', 'cruncher.js', 'docs.js', 'charts.js',
+     'graphs.js', 'highlight.js', 'line-state.js', 'number-widget.js',
+     'scrubbing.js', 'solver.js', 'util.js', 'value.js'])
 jison = ['src/jison/parser.jison']
 less = ['src/less/cruncher.less']
 test = ('test/' + s for s in ['solver.coffee'])
 
-coffeeOut = 'public/js'
+babelOut = 'public/js'
 jisonOut = 'public/js'
 lessOut = 'public/css'
 
 compileCoffee = (file) ->
-    exec "coffee -m -o #{coffeeOut} -c #{file}", (err, stdout, stderr) ->
+    basename = file.split('/')[-1]
+    exec "babel -s -o #{babelOut}/#{basename} #{file}", (err, stdout, stderr) ->
         return console.error err if err
         console.log "Compiled #{file}"
 
@@ -69,7 +70,7 @@ task 'build:watch', 'Build, then watch', ->
     invoke 'watch'
 
 task 'build', 'Compile *.coffee, *.jison and *.less', ->
-    compileCoffee(f) for f in coffee
+    compileCoffee(f) for f in js
     compileJison(f) for f in jison
     compileLess(f) for f in less
     for staticPath in staticPaths
