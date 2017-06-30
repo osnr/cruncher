@@ -19,7 +19,7 @@ jisonOut = 'public/js'
 lessOut = 'public/css'
 
 compileCoffee = (file) ->
-    basename = file.split('/')[-1]
+    basename = path.basename(file)
     exec "babel -s -o #{babelOut}/#{basename} #{file}", (err, stdout, stderr) ->
         return console.error err if err
         console.log "Compiled #{file}"
