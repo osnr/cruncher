@@ -1,4 +1,4 @@
-let Cr, getValueCid;
+let getValueCid;
 window.Cruncher = Cr = window.Cruncher || {};
 
 let paper = null;

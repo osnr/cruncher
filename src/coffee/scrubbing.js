@@ -1,4 +1,4 @@
-let Cr, hover, scr;
+let hover, scr;
 window.Cruncher = Cr = window.Cruncher || {};
 
 Cr.hover = hover = null;

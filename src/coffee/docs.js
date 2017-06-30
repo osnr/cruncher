@@ -1,4 +1,3 @@
-let Cr;
 window.Cruncher = Cr = window.Cruncher || {};
 
 CodeMirror.TextMarker.prototype.toSerializable = function() {
